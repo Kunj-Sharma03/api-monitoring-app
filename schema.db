@@ -1,0 +1,23 @@
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL
+);
+
+CREATE TABLE monitors (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  url TEXT NOT NULL,
+  interval_minutes INTEGER DEFAULT 5,
+  alert_threshold INTEGER DEFAULT 3,
+  is_active BOOLEAN DEFAULT true
+);
+
+CREATE TABLE monitor_logs (
+  id SERIAL PRIMARY KEY,
+  monitor_id INTEGER REFERENCES monitors(id),
+  timestamp TIMESTAMP DEFAULT NOW(),
+  status TEXT,
+  status_code INTEGER,
+  response_time INTEGER
+);
