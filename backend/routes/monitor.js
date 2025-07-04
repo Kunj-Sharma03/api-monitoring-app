@@ -64,4 +64,21 @@ router.put('/:id/update', auth, async (req, res) => {
   }
 });
 
+// Get logs for a specific monitor
+router.get('/:id/logs', auth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const logs = await pool.query(
+      `SELECT * FROM monitor_logs WHERE monitor_id = $1 ORDER BY timestamp DESC LIMIT 20`,
+      [id]
+    );
+
+    res.json({ logs: logs.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Failed to fetch logs' });
+  }
+});
+
 module.exports = router;
