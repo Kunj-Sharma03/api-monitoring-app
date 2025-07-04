@@ -7,14 +7,13 @@ export default function Dashboard() {
   const router = useRouter();
   const [monitors, setMonitors] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [activeView, setActiveView] = useState(null);
   const [url, setUrl] = useState('');
   const [interval, setInterval] = useState(5);
   const [threshold, setThreshold] = useState(3);
   const [creating, setCreating] = useState(false);
-  const [selectedMonitor, setSelectedMonitor] = useState(null);
   const [logs, setLogs] = useState([]);
-
+  const [alerts, setAlerts] = useState([]);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -27,11 +26,29 @@ export default function Dashboard() {
     });
     const data = await res.json();
     setLogs(data.logs);
-    setSelectedMonitor(monitorId);
+    setAlerts([]); // clear alerts when showing logs
+    setActiveView({ monitorId, type: 'logs' }); // ✅ Fix: ensure proper toggling
   } catch (err) {
     console.error('Error fetching logs:', err);
   }
 };
+
+
+const fetchAlerts = async (monitorId) => {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alerts`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setAlerts(data.alerts);
+    setLogs([]);
+    setActiveView({ monitorId, type: 'alerts' });
+  } catch (err) {
+    console.error('Error fetching alerts:', err);
+  }
+};
+
 
   const fetchMonitors = async () => {
     if (!token) return router.push('/login');
@@ -164,18 +181,36 @@ export default function Dashboard() {
             <p><strong>Check Interval:</strong> {monitor.interval_minutes} min</p>
             <p><strong>Alert Threshold:</strong> {monitor.alert_threshold}</p>
 
-            <button
-              onClick={() =>
-                selectedMonitor === monitor.id
-                  ? setSelectedMonitor(null)
-                  : fetchLogs(monitor.id)
-              }
-              className="text-blue-600 mt-2 underline"
-            >
-              {selectedMonitor === monitor.id ? 'Hide Logs' : 'View Logs'}
-            </button>
+            <div className="flex gap-4 mt-2">
+              <button
+                onClick={() =>
+                  activeView?.monitorId === monitor.id && activeView?.type === 'logs'
+                    ? setActiveView(null)
+                    : fetchLogs(monitor.id)
+                }
+                className="text-blue-600 underline"
+              >
+                {activeView?.monitorId === monitor.id && activeView?.type === 'logs'
+                  ? 'Hide Logs'
+                  : 'View Logs'}
+              </button>
 
-            {selectedMonitor === monitor.id && logs.length > 0 && (
+              <button
+                onClick={() =>
+                  activeView?.monitorId === monitor.id && activeView?.type === 'alerts'
+                    ? setActiveView(null)
+                    : fetchAlerts(monitor.id)
+                }
+                className="text-red-600 underline"
+              >
+                {activeView?.monitorId === monitor.id && activeView?.type === 'alerts'
+                  ? 'Hide Alerts'
+                  : 'View Alerts'}
+              </button>
+            </div>
+
+            {/* Logs */}
+            {activeView?.monitorId === monitor.id && activeView?.type === 'logs' && logs.length > 0 && (
               <div className="mt-2 text-sm text-gray-700">
                 <h3 className="font-semibold mb-1">Recent Logs:</h3>
                 <ul className="space-y-1">
@@ -190,10 +225,31 @@ export default function Dashboard() {
                 </ul>
               </div>
             )}
+
+            {/* Alerts */}
+              {activeView?.monitorId === monitor.id && activeView?.type === 'alerts' && (
+                <div className="mt-2 text-sm text-red-700">
+                  <h3 className="font-semibold mb-1">Recent Alerts:</h3>
+                  {alerts.length > 0 ? (
+                    <ul className="space-y-1">
+                      {alerts.map((alert) => (
+                        <li key={alert.id} className="border p-2 rounded bg-red-50">
+                          <p>
+                            <strong>{new Date(alert.triggered_at).toLocaleString()}</strong> — {alert.reason}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm italic text-gray-500">No alerts found.</p>
+                  )}
+                </div>
+              )}
           </li>
         ))}
       </ul>
     )}
   </div>
 );
+
 }

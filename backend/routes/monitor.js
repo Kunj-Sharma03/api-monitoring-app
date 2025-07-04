@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const pool = require('../db');
+const { pool } = require('../db');
 
 // Create a new monitor
 router.post('/create', auth, async (req, res) => {
@@ -80,5 +80,33 @@ router.get('/:id/logs', auth, async (req, res) => {
     res.status(500).json({ msg: 'Failed to fetch logs' });
   }
 });
+
+// Get recent alerts for a monitor
+router.get('/:id/alerts', auth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Ensure the monitor belongs to the user
+    const monitor = await pool.query(
+      `SELECT * FROM monitors WHERE id = $1 AND user_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (monitor.rowCount === 0) {
+      return res.status(404).json({ msg: 'Monitor not found or not owned by user' });
+    }
+
+    const alerts = await pool.query(
+      `SELECT * FROM alerts WHERE monitor_id = $1 ORDER BY triggered_at DESC LIMIT 10`,
+      [id]
+    );
+
+    res.json({ alerts: alerts.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error fetching alerts' });
+  }
+});
+
 
 module.exports = router;
