@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const { pool } = require('../db');
+const generateAlertPDF = require('../utils/generateAlertpdf');
+const path = require('path');
+const fs = require('fs');
 
 // Create a new monitor
 router.post('/create', auth, async (req, res) => {
@@ -105,6 +108,48 @@ router.get('/:id/alerts', auth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error fetching alerts' });
+  }
+});
+
+router.get('/:monitorId/alert/:alertId/pdf', async (req, res) => {
+  const { monitorId, alertId } = req.params;
+
+  try {
+    // 1. Fetch monitor and alert details
+    const monitorRes = await pool.query('SELECT * FROM monitors WHERE id = $1', [monitorId]);
+    const alertRes = await pool.query('SELECT * FROM alerts WHERE id = $1', [alertId]);
+
+    const logRes = await pool.query(`
+      SELECT * FROM monitor_logs 
+      WHERE monitor_id = $1 
+      ORDER BY timestamp DESC LIMIT 1
+    `, [monitorId]);
+
+    const monitor = monitorRes.rows[0];
+    const alert = alertRes.rows[0];
+    const log = logRes.rows[0]; 
+
+    if (!monitor || !alert || !log) return res.status(404).json({ error: 'Data not found' });
+
+    // 2. Generate PDF
+    const pdfPath = await generateAlertPDF({
+      monitor,
+      status: log.status,
+      logDetails: {
+        statusCode: log.status_code,
+        responseTime: log.response_time,
+      },
+      prevStatus: alert.reason?.includes('from') ? alert.reason.split(' ')[2] : 'UNKNOWN',
+    });
+
+    // 3. Send the PDF
+    res.download(pdfPath, `alert-${alertId}.pdf`, (err) => {
+      fs.unlink(pdfPath, () => {}); // Cleanup temp file
+    });
+
+  } catch (err) {
+    console.error('❌ Error generating alert PDF:', err.message);
+    res.status(500).json({ error: 'Failed to generate PDF' });
   }
 });
 

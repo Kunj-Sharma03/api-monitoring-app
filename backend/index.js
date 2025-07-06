@@ -25,7 +25,7 @@ cron.schedule('* * * * *', async () => {
   console.log('⏱️ Running scheduled monitor check...');
   try {
     await pool.query('SELECT 1'); // quick DB check
-    await checkMonitors();       // actual monitoring work
+    await checkMonitors().catch(err => console.error('🚨 Monitor job failed:', err.message)); // actual monitoring work
   } catch (err) {
     console.error('🔌 Monitor check failed:', err.message);
   } finally {
