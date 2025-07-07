@@ -3,10 +3,19 @@ const axios = require('axios');
 const sendEmail = require('../utils/sendEmail');
 const generateAlertPDF = require('../utils/generateAlertpdf');
 const fs = require('fs');
-const pLimit = require('p-limit').default; // Add at top with other imports
-const limit = pLimit(2); // Adjust concurrency as needed
+const os = require('os');
+const pLimit = require('p-limit').default;
 
+const limit = pLimit(2);
+const COOLDOWN_MINUTES = 30;
 
+function isCooldownActive(lastSent) {
+  if (!lastSent) return false;
+  const lastTime = new Date(lastSent);
+  const now = new Date();
+  const diffInMinutes = (now - lastTime) / (1000 * 60);
+  return diffInMinutes < COOLDOWN_MINUTES;
+}
 
 async function sendAlert(monitor, status, logDetails, prevStatus) {
   try {
@@ -29,6 +38,7 @@ async function sendAlert(monitor, status, logDetails, prevStatus) {
 ⏱ Response Time: ${logDetails.responseTime} ms
 
 📝 Reason: Status changed from ${prevStatus} to ${status}
+🖥 Host: ${os.hostname()}
 
 See attached report for more details.
     `.trim();
@@ -36,14 +46,13 @@ See attached report for more details.
     const pdfPath = await generateAlertPDF({ monitor, status, logDetails, prevStatus });
     await sendEmail(userEmail, subject, text, pdfPath);
 
-    fs.unlink(pdfPath, () => {}); // Clean temp file after sending
+    fs.unlink(pdfPath, () => {}); // delete temp file
 
     console.log(`📧 PDF Alert sent to ${userEmail}`);
   } catch (err) {
     console.error('❌ Failed to send alert with PDF:', err);
   }
 }
-
 
 async function checkMonitors() {
   try {
@@ -57,6 +66,7 @@ async function checkMonitors() {
           const start = Date.now();
           let status = 'DOWN';
           let statusCode = 0;
+          let errorMessage = null;
 
           try {
             const res = await axios.get(monitor.url, { timeout: 10000 });
@@ -70,11 +80,19 @@ async function checkMonitors() {
             } catch (retryErr) {
               status = 'DOWN';
               statusCode = retryErr.response?.status || 0;
+
+              if (retryErr.response) {
+                errorMessage = `HTTP ${statusCode} - ${retryErr.response.statusText}`;
+              } else if (retryErr.request) {
+                errorMessage = 'No response received (timeout or network issue)';
+              } else {
+                errorMessage = retryErr.message;
+              }
             }
           }
 
           const responseTime = Date.now() - start;
-          const logDetails = { statusCode, responseTime };
+          const logDetails = { statusCode, responseTime, errorMessage };
 
           try {
             const previous = await safeQuery(
@@ -90,12 +108,29 @@ async function checkMonitors() {
             );
 
             if (prevStatus && prevStatus !== status) {
-              await sendAlert(monitor, status, logDetails, prevStatus);
-              await safeQuery(
-                `INSERT INTO alerts (monitor_id, reason)
-                 VALUES ($1, $2)`,
-                [monitor.id, `Status changed from ${prevStatus} to ${status}`]
-              );
+              if (isCooldownActive(monitor.last_alert_sent_at)) {
+                console.log(`⏳ Alert skipped for ${monitor.url} (cooldown active)`);
+              } else {
+                await sendAlert(monitor, status, logDetails, prevStatus);
+
+                await safeQuery(
+                  `INSERT INTO alerts (monitor_id, reason, error_message)
+                   VALUES ($1, $2, $3)`,
+                  [
+                    monitor.id,
+                    `Status changed from ${prevStatus} to ${status}`,
+                    errorMessage,
+                  ]
+                );
+
+                await safeQuery(
+                  `UPDATE monitors
+                   SET last_alert_sent_at = NOW(),
+                       status_change_count = status_change_count + 1
+                   WHERE id = $1`,
+                  [monitor.id]
+                );
+              }
             }
 
             console.log(`✅ Checked ${monitor.url} → ${status} (${statusCode})`);
@@ -109,6 +144,5 @@ async function checkMonitors() {
     console.error('❌ Monitor check error:', err.message);
   }
 }
-
 
 module.exports = checkMonitors;

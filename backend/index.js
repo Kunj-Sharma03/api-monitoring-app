@@ -2,20 +2,32 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
+const LOG_CLEANUP_DAYS = parseInt(process.env.LOG_CLEANUP_DAYS || '7');
+const apiLimiter = require('./middleware/rateLimiter');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
 const monitorRoutes = require('./routes/monitor');
 const checkMonitors = require('./services/monitorWorker');
-const { pool } = require('./db'); // safeQuery and pool
-const app = express();
+const { pool } = require('./db');
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 🌐 Root route
 app.get('/', (req, res) => {
   res.send('API is working!');
 });
 
+// 🛡️ Apply rate limiter to all /api routes
+app.use('/api', apiLimiter);
+
+// 📦 Routes
+app.use('/api', authRoutes);
+app.use('/api', apiRoutes);
+app.use('/api/monitor', monitorRoutes);
+
+// ⏱️ Cron monitor check (runs every minute)
 let isChecking = false;
 
 cron.schedule('* * * * *', async () => {
@@ -24,8 +36,8 @@ cron.schedule('* * * * *', async () => {
   isChecking = true;
   console.log('⏱️ Running scheduled monitor check...');
   try {
-    await pool.query('SELECT 1'); // quick DB check
-    await checkMonitors().catch(err => console.error('🚨 Monitor job failed:', err.message)); // actual monitoring work
+    await pool.query('SELECT 1'); // DB ping
+    await checkMonitors().catch(err => console.error('🚨 Monitor job failed:', err.message));
   } catch (err) {
     console.error('🔌 Monitor check failed:', err.message);
   } finally {
@@ -33,7 +45,21 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-// ✅ Retry DB connection gracefully at startup
+// 🧹 Daily cleanup: delete monitor_logs older than LOG_CLEANUP_DAYS
+cron.schedule('0 0 * * *', async () => {
+  console.log(`🧹 Cleaning up logs older than ${LOG_CLEANUP_DAYS} days...`);
+  try {
+    const result = await pool.query(
+      `DELETE FROM monitor_logs WHERE timestamp < NOW() - INTERVAL '${LOG_CLEANUP_DAYS} days' RETURNING id`
+    );
+    console.log(`✅ Deleted ${result.rowCount} old logs`);
+  } catch (err) {
+    console.error('❌ Log cleanup failed:', err.message);
+  }
+});
+
+
+// 🔁 Retry DB connection on startup
 async function connectWithRetry(retries = 5, delay = 3000) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -48,18 +74,13 @@ async function connectWithRetry(retries = 5, delay = 3000) {
   console.warn('⚠️ Starting server without DB connection.');
 }
 
-// Handle unhandled DB errors
+// 🧨 Handle global unhandled DB rejections
 process.on('unhandledRejection', (err) => {
   console.error('🧨 Unhandled DB error:', err.message);
 });
 
 const PORT = process.env.PORT || 5000;
 
-app.use('/api', authRoutes);
-app.use('/api', apiRoutes);
-app.use('/api/monitor', monitorRoutes);
-
-// 👇 Connect to DB before starting server
 connectWithRetry().then(() => {
   app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 });

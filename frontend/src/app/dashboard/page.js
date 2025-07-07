@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function Dashboard() {
   const router = useRouter();
   const [monitors, setMonitors] = useState([]);
+  const [filteredMonitors, setFilteredMonitors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState(null);
   const [url, setUrl] = useState('');
@@ -14,65 +15,17 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [logs, setLogs] = useState([]);
   const [alerts, setAlerts] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [sortBy, setSortBy] = useState('url');
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
-  const fetchLogs = async (monitorId) => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/logs`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setLogs(data.logs);
-      setAlerts([]);
-      setActiveView({ monitorId, type: 'logs' });
-    } catch (err) {
-      console.error('Error fetching logs:', err);
-    }
-  };
-
-  const fetchAlerts = async (monitorId) => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alerts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setAlerts(data.alerts);
-      setLogs([]);
-      setActiveView({ monitorId, type: 'alerts' });
-    } catch (err) {
-      console.error('Error fetching alerts:', err);
-    }
-  };
-
-  const downloadPDF = async (monitorId, alertId) => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alert/${alertId}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `alert-${alertId}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Failed to download PDF:', err);
-    }
-  };
 
   const fetchMonitors = async () => {
     if (!token) return router.push('/login');
 
     try {
       const res = await fetch('http://localhost:5000/api/monitor/all', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.status === 401) {
@@ -82,23 +35,23 @@ export default function Dashboard() {
       }
 
       const data = await res.json();
+
+      // If response is HTML, likely backend crashed
+      if (typeof data !== 'object' || !data.monitors) {
+        throw new Error('Invalid response');
+      }
+
       setMonitors(data.monitors || []);
     } catch (err) {
-      console.error('Failed to fetch monitors', err);
+      console.error('Failed to fetch monitors:', err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   const createMonitor = async (e) => {
     e.preventDefault();
     setCreating(true);
-
     try {
       const res = await fetch('http://localhost:5000/api/monitor/create', {
         method: 'POST',
@@ -120,15 +73,85 @@ export default function Dashboard() {
         fetchMonitors();
       }
     } catch (err) {
-      console.error('Failed to create monitor:', err);
+      console.error('Failed to create monitor:', err.message);
     } finally {
       setCreating(false);
     }
   };
 
+  const fetchLogs = async (monitorId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/logs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setLogs(data.logs || []);
+      setAlerts([]);
+      setActiveView({ monitorId, type: 'logs' });
+    } catch (err) {
+      console.error('Error fetching logs:', err.message);
+    }
+  };
+
+  const fetchAlerts = async (monitorId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alerts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setAlerts(data.alerts || []);
+      setLogs([]);
+      setActiveView({ monitorId, type: 'alerts' });
+    } catch (err) {
+      console.error('Error fetching alerts:', err.message);
+    }
+  };
+
+  const downloadPDF = async (monitorId, alertId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alert/${alertId}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error('PDF download failed');
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `alert-${alertId}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download PDF:', err.message);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   useEffect(() => {
     fetchMonitors();
   }, []);
+
+  useEffect(() => {
+    let result = [...monitors];
+
+    if (statusFilter !== 'ALL') {
+      result = result.filter((m) => String(m.is_active) === statusFilter);
+    }
+
+    result.sort((a, b) => {
+      if (sortBy === 'url') return a.url.localeCompare(b.url);
+      if (sortBy === 'interval') return a.interval_minutes - b.interval_minutes;
+      if (sortBy === 'threshold') return a.alert_threshold - b.alert_threshold;
+      return 0;
+    });
+
+    setFilteredMonitors(result);
+  }, [monitors, statusFilter, sortBy]);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -181,17 +204,49 @@ export default function Dashboard() {
         </button>
       </form>
 
+      {/* Filter & Sort */}
+      <div className="flex flex-wrap gap-4 mb-6 items-center">
+        <label>Status:</label>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border px-2 py-1 rounded"
+        >
+          <option value="ALL">All</option>
+          <option value="true">🟢 Active</option>
+          <option value="false">🔴 Inactive</option>
+        </select>
+
+        <label>Sort By:</label>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="border px-2 py-1 rounded"
+        >
+          <option value="url">URL (A-Z)</option>
+          <option value="interval">Interval</option>
+          <option value="threshold">Threshold</option>
+        </select>
+      </div>
+
       {/* Monitor List */}
       {loading ? (
         <p>Loading...</p>
-      ) : monitors.length === 0 ? (
+      ) : filteredMonitors.length === 0 ? (
         <p>No monitors found.</p>
       ) : (
         <ul className="space-y-2">
-          {monitors.map((monitor) => (
+          {filteredMonitors.map((monitor) => (
             <li key={monitor.id} className="border p-4 rounded shadow">
               <p><strong>URL:</strong> {monitor.url}</p>
-              <p><strong>Status:</strong> {monitor.is_active ? 'Active' : 'Inactive'}</p>
+              <p>
+                <strong>Status:</strong>{' '}
+                {monitor.is_active ? (
+                  <span className="text-green-600">🟢 Active</span>
+                ) : (
+                  <span className="text-red-600">🔴 Inactive</span>
+                )}
+              </p>
               <p><strong>Check Interval:</strong> {monitor.interval_minutes} min</p>
               <p><strong>Alert Threshold:</strong> {monitor.alert_threshold}</p>
 
