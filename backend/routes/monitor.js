@@ -43,6 +43,7 @@ router.post('/create', auth, monitorValidation, async (req, res) => {
 
 // 🔁 Update monitor
 router.put('/:id/update', auth, monitorValidation, async (req, res) => {
+  console.log('🔧 Reached PUT /:id/update');
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -191,6 +192,84 @@ router.get('/all', auth, async (req, res) => {
     res.status(500).json({ msg: 'Server error fetching monitors' });
   }
 });
+
+// 🧽 Delete monitor
+router.delete('/:id', auth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `DELETE FROM monitors WHERE id = $1 AND user_id = $2 RETURNING *`,
+      [id, req.user.id]
+    );
+
+    if (result.rowCount === 0)
+      return res.status(404).json({ msg: 'Monitor not found or not owned by user' });
+
+    res.json({ msg: 'Monitor deleted', monitor: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error deleting monitor' });
+  }
+});
+
+
+router.get('/:id/stats', auth, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    // Ensure monitor belongs to user
+    const monitorCheck = await pool.query(
+      'SELECT * FROM monitors WHERE id = $1 AND user_id = $2',
+      [id, userId]
+    );
+    if (monitorCheck.rowCount === 0) {
+      return res.status(404).json({ msg: 'Monitor not found or unauthorized' });
+    }
+
+    // Total logs and UP logs
+    const { rows: logRows } = await pool.query(
+      `SELECT COUNT(*) FILTER (WHERE status_code BETWEEN 200 AND 299) AS up_count,
+              COUNT(*) AS total_count,
+              AVG(response_time) AS avg_response_time
+       FROM monitor_logs
+       WHERE monitor_id = $1`,
+      [id]
+    );
+
+    const { up_count, total_count, avg_response_time } = logRows[0];
+    const uptimePercent = total_count > 0 ? ((up_count / total_count) * 100).toFixed(2) : 0;
+
+    // Total alerts
+    const alertRes = await pool.query(
+      'SELECT COUNT(*) FROM alerts WHERE monitor_id = $1',
+      [id]
+    );
+    const totalAlerts = parseInt(alertRes.rows[0].count);
+
+    // Last 20 logs (for latency chart)
+    const recentLogsRes = await pool.query(
+      `SELECT timestamp, response_time 
+       FROM monitor_logs 
+       WHERE monitor_id = $1
+       ORDER BY timestamp DESC
+       LIMIT 20`,
+      [id]
+    );
+
+    res.json({
+      uptimePercent,
+      totalAlerts,
+      avgResponseTime: Math.round(avg_response_time) || 0,
+      lastLogs: recentLogsRes.rows.reverse(), // reverse to get oldest first
+    });
+  } catch (err) {
+    console.error('Error in stats route:', err.message);
+    res.status(500).json({ msg: 'Server error while fetching monitor stats' });
+  }
+});
+
 
 
 module.exports = router;

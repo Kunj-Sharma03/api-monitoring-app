@@ -9,6 +9,9 @@ const apiRoutes = require('./routes/api');
 const monitorRoutes = require('./routes/monitor');
 const checkMonitors = require('./services/monitorWorker');
 const { pool } = require('./db');
+require('dotenv').config();
+const validateEnv = require('./utils/validateEnv');
+validateEnv();
 
 const app = express();
 app.use(cors());
