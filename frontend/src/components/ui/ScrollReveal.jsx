@@ -46,6 +46,7 @@ const ScrollReveal = ({
         opacity: baseOpacity,
         filter: enableBlur ? `blur(${blurStrength}px)` : 'none',
         rotate: baseRotation,
+        scale: 0.96,
         willChange: 'opacity, filter, transform',
         transformOrigin: '0% 50%'
       },
@@ -53,13 +54,15 @@ const ScrollReveal = ({
         opacity: 1,
         filter: 'blur(0px)',
         rotate: 0,
-        ease: 'none',
+        scale: 1,
+        ease: 'power2.out',
+        duration: 1.1,
         scrollTrigger: {
           trigger: el,
           scroller,
-          start: 'top 40%',
+          start: 'top 60%',
           end: animationEnd,
-          scrub: true,
+          scrub: 0.4,
         },
       }
     );

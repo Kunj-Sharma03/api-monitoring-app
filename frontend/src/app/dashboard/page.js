@@ -1,17 +1,18 @@
 'use client';
 
 
-import { useEffect, useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import useMonitorsSWR from '@/hooks/useMonitorsSWR';
+import useAuthToken from '@/hooks/useAuthToken';
+import pLimit from '@/lib/pLimit';
 import ScrollReveal from '@/components/ui/ScrollReveal';
+import Chart from '@/components/ui/Chart';
 import SplitText from '@/components/ui/SplitText';
 import { useRouter } from 'next/navigation';
 import { MonitorIcon } from 'lucide-react';
 
 export default function Dashboard() {
   const router = useRouter();
-  const [monitors, setMonitors] = useState([]);
-  const [filteredMonitors, setFilteredMonitors] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState(null);
   const [url, setUrl] = useState('');
   const [interval, setInterval] = useState(5);
@@ -28,36 +29,51 @@ export default function Dashboard() {
   const [editActive, setEditActive] = useState(true);
   const [updating, setUpdating] = useState(false);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const token = useAuthToken();
+  const { monitors, isLoading, mutate } = useMonitorsSWR();
+  const [chartData, setChartData] = useState({ labels: [], uptime: [], incidents: [] });
 
-  const fetchMonitors = async () => {
-    if (!token) return router.push('/login');
+  // Fetch chart data when monitors change
+  // Advanced: Parallelize stats requests with concurrency limit, update chart as data arrives
+  React.useEffect(() => {
+    if (!token || !monitors.length) return;
+    let cancelled = false;
+    const limit = pLimit(4); // 4 concurrent requests
+    const statsArr = new Array(monitors.length);
+    setChartData({ labels: [], uptime: [], incidents: [] });
 
-    try {
-      const res = await fetch('http://localhost:5000/api/monitor/all', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        router.push('/login');
-        return;
-      }
-
-      const data = await res.json();
-
-      // If response is HTML, likely backend crashed
-      if (typeof data !== 'object' || !data.monitors) {
-        throw new Error('Invalid response');
-      }
-
-      setMonitors(data.monitors || []);
-    } catch (err) {
-      console.error('Failed to fetch monitors:', err.message);
-    } finally {
-      setLoading(false);
+    async function fetchStats() {
+      await Promise.all(
+        monitors.map((monitor, i) =>
+          limit(async () => {
+            try {
+              const statsRes = await fetch(`http://localhost:5000/api/monitor/${monitor.id}/stats`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (!statsRes.ok) return;
+              const stats = await statsRes.json();
+              statsArr[i] = {
+                label: monitor.url,
+                uptime: Number(stats.uptimePercent),
+                incidents: stats.totalAlerts,
+              };
+              // Update chart as each stat arrives
+              if (!cancelled) {
+                const filtered = statsArr.filter(Boolean);
+                setChartData({
+                  labels: filtered.map((s) => s.label),
+                  uptime: filtered.map((s) => s.uptime),
+                  incidents: filtered.map((s) => s.incidents),
+                });
+              }
+            } catch {}
+          })
+        )
+      );
     }
-  };
+    fetchStats();
+    return () => { cancelled = true; };
+  }, [token, monitors]);
 
   const createMonitor = async (e) => {
     e.preventDefault();
@@ -80,7 +96,7 @@ export default function Dashboard() {
         setUrl('');
         setInterval(5);
         setThreshold(3);
-        fetchMonitors();
+        mutate(); // revalidate SWR cache
       }
     } catch (err) {
       console.error('Failed to create monitor:', err.message);
@@ -163,9 +179,8 @@ export default function Dashboard() {
     }
 
     const updated = await res.json();
-    setMonitors((prev) =>
-      prev.map((m) => (m.id === updated.id ? updated : m))
-    );
+
+    mutate(); // Refresh monitors from server
 
     setEditingMonitor(null); // Close modal
   } catch (err) {
@@ -190,7 +205,7 @@ const deleteMonitor = async (id) => {
       return;
     }
 
-    setMonitors((prev) => prev.filter((m) => m.id !== id));
+    mutate(); // Refresh monitors from server
   } catch (err) {
     console.error('Delete failed:', err.message);
     alert('Something went wrong while deleting.');
@@ -204,28 +219,23 @@ const deleteMonitor = async (id) => {
     router.push('/login');
   };
 
-  useEffect(() => {
-    fetchMonitors();
-  }, []);
+  const filteredMonitors = useMemo(() => {
+  let result = [...monitors];
+  if (statusFilter !== 'ALL') {
+    result = result.filter((m) => String(m.is_active) === statusFilter);
+  }
+  result.sort((a, b) => {
+    if (sortBy === 'url') return a.url.localeCompare(b.url);
+    if (sortBy === 'interval') return a.interval_minutes - b.interval_minutes;
+    if (sortBy === 'threshold') return a.alert_threshold - b.alert_threshold;
+    return 0;
+  });
+  return result;
+}, [monitors, statusFilter, sortBy]);
 
-  useEffect(() => {
-    let result = [...monitors];
-
-    if (statusFilter !== 'ALL') {
-      result = result.filter((m) => String(m.is_active) === statusFilter);
-    }
-
-    result.sort((a, b) => {
-      if (sortBy === 'url') return a.url.localeCompare(b.url);
-      if (sortBy === 'interval') return a.interval_minutes - b.interval_minutes;
-      if (sortBy === 'threshold') return a.alert_threshold - b.alert_threshold;
-      return 0;
-    });
-
-    setFilteredMonitors(result);
-  }, [monitors, statusFilter, sortBy]);
-
-
+  // Memoize SplitText animation props to prevent infinite re-renders
+  const splitTextFrom = useMemo(() => ({ opacity: 0, y: 40 }), []);
+  const splitTextTo = useMemo(() => ({ opacity: 1, y: 0 }), []);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)] flex">
@@ -233,7 +243,7 @@ const deleteMonitor = async (id) => {
       <main className="flex-1 px-8 py-10 bg-[var(--color-bg)] bg-opacity-80 min-h-screen">
         {/* Top row: greeting and stats */}
 
-        <div className="relative flex flex-col items-center justify-center min-h-[60vh] gap-6 mb-10">
+        <div className="relative flex flex-col items-center justify-center w-full min-h-[70vh]">
           {/* Logout button top right */}
           <button
             onClick={handleLogout}
@@ -241,45 +251,130 @@ const deleteMonitor = async (id) => {
           >
             Logout
           </button>
-          <SplitText
-            text="Hello, User!"
-            className="text-4xl font-bold font-sans text-center mb-2"
-            delay={60}
-            duration={0.6}
-            ease="power3.out"
-            splitType="chars"
-            from={{ opacity: 0, y: 40 }}
-            to={{ opacity: 1, y: 0 }}
-            threshold={0.1}
-            rootMargin="-100px"
-            textAlign="center"
-          />
-          <div className="flex gap-8 mt-4">
-            <ScrollReveal baseOpacity={0} enableBlur={true} baseRotation={0} blurStrength={8} containerClassName="">
-              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-8 py-6 min-w-[140px]">
-                <MonitorIcon className="w-8 h-8 text-[var(--color-primary)] mb-1" />
-                <span className="text-xs text-[var(--color-text-secondary)] font-sans">Total Monitors</span>
-                <span className="text-2xl font-bold font-sans">{monitors.length}</span>
+          <div className="flex flex-col items-center justify-center w-full h-full">
+            <SplitText
+              text="Hello, User!"
+              className="text-4xl font-bold font-sans text-center mb-8"
+              delay={60}
+              duration={0.6}
+              ease="power3.out"
+              splitType="chars"
+              from={splitTextFrom}
+              to={splitTextTo}
+              threshold={0.1}
+              rootMargin="-100px"
+              textAlign="center"
+            />
+            <div className="flex flex-row gap-12 mt-2 w-full justify-center z-10">
+              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-10 py-8 min-w-[180px] shadow-md">
+                <MonitorIcon className="w-10 h-10 text-[var(--color-primary)] mb-2" />
+                <span className="text-sm text-[var(--color-text-secondary)] font-sans">Total Monitors</span>
+        <span className="text-3xl font-bold font-sans">{isLoading ? '...' : monitors.length}</span>
               </div>
-            </ScrollReveal>
-            <ScrollReveal baseOpacity={0} enableBlur={true} baseRotation={0} blurStrength={8} containerClassName="">
-              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-8 py-6 min-w-[140px]">
-                <span className="w-4 h-4 rounded-full bg-[var(--color-success)] inline-block mb-1" />
-                <span className="text-xs text-[var(--color-text-secondary)] font-sans">Active</span>
-                <span className="text-xl font-semibold font-sans">{monitors.filter(m => m.is_active).length}</span>
+              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-10 py-8 min-w-[180px] shadow-md">
+                <span className="w-5 h-5 rounded-full bg-[var(--color-success)] inline-block mb-2" />
+                <span className="text-sm text-[var(--color-text-secondary)] font-sans">Active</span>
+                <span className="text-2xl font-semibold font-sans">{isLoading ? '...' : monitors.filter(m => m.is_active).length}</span>
               </div>
-            </ScrollReveal>
+            </div>
           </div>
         </div>
         {/* Chart placeholder with scroll reveal, revealed on scroll */}
-        <ScrollReveal baseOpacity={0} enableBlur={true} baseRotation={5} blurStrength={10} containerClassName="w-full mt-20">
-          <div className="bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg h-40 flex items-center justify-center text-[var(--color-text-secondary)] text-lg font-mono">
-            {/* Replace with chart component */}
-            Total Stats Chart (Coming Soon)
-          </div>
-        </ScrollReveal>
-        {/* Dummy content to force scroll for testing */}
-        <div style={{height: '100vh'}}></div>
+        {/* Spacer to push chart below the fold for scroll reveal */}
+        <div style={{ height: '18vh' }}></div>
+        <div className="w-full flex flex-col items-center justify-center mt-8 mb-8">
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8} containerClassName="w-full">
+            <div
+              className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-3xl flex flex-col items-center justify-center text-[var(--color-text-secondary)] text-lg font-mono shadow-2xl w-full max-w-7xl mx-auto"
+              style={{ background: 'linear-gradient(135deg, rgba(240,235,255,0.38) 0%, rgba(220,210,255,0.18) 100%)', minHeight: '60vh', height: '60vh', width: '100%' }}
+            >
+              {/* Custom legend with circles */}
+              <div className="flex gap-8 items-center mt-8 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-4 h-4 rounded-full" style={{ background: 'rgba(200, 180, 255, 0.75)' }}></span>
+                  <span className="text-base font-medium text-[var(--color-text-primary)]">Uptime (%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-4 h-4 rounded-full" style={{ background: 'rgba(240, 235, 255, 0.7)' }}></span>
+                  <span className="text-base font-medium text-[var(--color-text-primary)]">Incidents</span>
+                </div>
+              </div>
+              {/* Chart loading skeleton */}
+              {isLoading ? (
+                <div className="w-full h-full flex items-center justify-center min-h-[300px]">
+                  <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
+                </div>
+              ) : (
+                <Chart
+                  type="bar"
+                  className="w-full h-full"
+                  height={null}
+                  data={{
+                    labels: chartData.labels,
+                    datasets: [
+                      {
+                        label: 'Uptime (%)',
+                        data: chartData.uptime,
+                        backgroundColor: 'rgba(200, 180, 255, 0.75)',
+                        borderRadius: 18,
+                        barPercentage: 0.15,
+                        categoryPercentage: 0.5,
+                      },
+                      {
+                        label: 'Incidents',
+                        data: chartData.incidents,
+                        backgroundColor: 'rgba(240, 235, 255, 0.7)',
+                        borderRadius: 18,
+                        barPercentage: 0.15,
+                        categoryPercentage: 0.5,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        display: false,
+                      },
+                      title: { display: false },
+                      tooltip: {
+                        backgroundColor: 'rgba(200,180,255,0.97)',
+                        titleColor: '#232329',
+                        bodyColor: '#232329',
+                        borderColor: '#e5dbff',
+                        borderWidth: 1.5,
+                        titleFont: { family: 'Nunito Sans, Inter, sans-serif', size: 18 },
+                        bodyFont: { family: 'Nunito Sans, Inter, sans-serif', size: 16 },
+                      },
+                    },
+                    scales: {
+                      x: {
+                        ticks: {
+                          color: '#bdaaff',
+                          font: { family: 'Nunito Sans, Inter, sans-serif', size: 17 },
+                          padding: 10,
+                        },
+                        grid: { color: 'rgba(200,180,255,0.08)' },
+                      },
+                      y: {
+                        ticks: {
+                          color: '#bdaaff',
+                          font: { family: 'Nunito Sans, Inter, sans-serif', size: 17 },
+                          padding: 10,
+                        },
+                        grid: { color: 'rgba(200,180,255,0.08)' },
+                      },
+                    },
+                    layout: { padding: 40 },
+                    borderRadius: 24,
+                  }}
+                />
+              )}
+            </div>
+          </ScrollReveal>
+        </div>
+        {/* Removed dummy content to reduce unnecessary space after charts */}
 
         {/* Create Monitor Form */}
         <form onSubmit={createMonitor} className="mb-8 space-y-4 border border-[var(--color-border)] p-6 rounded-lg bg-[var(--color-surface)] bg-opacity-80 max-w-xl">
@@ -348,7 +443,7 @@ const deleteMonitor = async (id) => {
         </div>
 
         {/* Monitor List */}
-    {loading ? (
+    {isLoading ? (
       <p>Loading...</p>
     ) : filteredMonitors.length === 0 ? (
       <p>No monitors found.</p>

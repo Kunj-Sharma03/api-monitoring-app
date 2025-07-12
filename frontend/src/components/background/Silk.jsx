@@ -95,13 +95,14 @@ const SilkPlane = forwardRef(function SilkPlane({ uniforms }, ref) {
 });
 SilkPlane.displayName = "SilkPlane";
 
-const Silk = ({
+import React from "react";
+const Silk = React.memo(function Silk({
   speed = 5,
   scale = 1,
   color = "#7B7481",
   noiseIntensity = 1.5,
   rotation = 0,
-}) => {
+}) {
   const meshRef = useRef();
 
   const uniforms = useMemo(
@@ -121,6 +122,6 @@ const Silk = ({
       <SilkPlane ref={meshRef} uniforms={uniforms} />
     </Canvas>
   );
-};
+});
 
 export default Silk;
