@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef } from 'react';
@@ -44,25 +43,21 @@ const ScrollReveal = ({
       el,
       {
         opacity: baseOpacity,
-        filter: enableBlur ? `blur(${blurStrength}px)` : 'none',
-        rotate: baseRotation,
-        scale: 0.96,
-        willChange: 'opacity, filter, transform',
+        scale: 0.98, // Removed blur and rotation for performance
+        willChange: 'opacity, transform',
         transformOrigin: '0% 50%'
       },
       {
         opacity: 1,
-        filter: 'blur(0px)',
-        rotate: 0,
         scale: 1,
         ease: 'power2.out',
-        duration: 1.1,
+        duration: 0.8, // Reduced duration for snappier animations
         scrollTrigger: {
           trigger: el,
           scroller,
-          start: 'top 60%',
+          start: 'top 70%', // Adjusted start position for smoother experience
           end: animationEnd,
-          scrub: 0.4,
+          scrub: 0.3, // Slightly reduced scrub for responsiveness
         },
       }
     );

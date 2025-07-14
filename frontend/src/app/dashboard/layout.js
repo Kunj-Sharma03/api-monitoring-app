@@ -19,9 +19,15 @@ import {
   MonitorIcon,
 } from "lucide-react";
 import Silk from "@/components/background/Silk";
+import useAuthToken from "@/hooks/useAuthToken";
 
 export default function Layout({ children }) {
   const pathname = usePathname();
+  const { token, loading } = useAuthToken();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="relative flex min-h-screen w-full bg-[var(--color-bg)] bg-opacity-80">
