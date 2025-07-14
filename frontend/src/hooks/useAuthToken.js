@@ -9,7 +9,7 @@ export default function useAuthToken() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedToken = localStorage.getItem("token");
-      console.log('Token retrieved from localStorage:', storedToken);
+      // Removed sensitive token logging
       setToken(storedToken);
     }
     setLoading(false);
@@ -17,7 +17,7 @@ export default function useAuthToken() {
 
   useEffect(() => {
     if (token) {
-      console.log('Retrieved token:', token);
+      // Removed sensitive token logging
       try {
         if (typeof token !== 'string' || !token.includes('.')) {
           throw new Error('Token is not a valid JWT string');
@@ -27,12 +27,12 @@ export default function useAuthToken() {
           throw new Error('Invalid token payload');
         }
       } catch (err) {
-        console.error('Invalid token detected, clearing from localStorage:', err.message);
+        console.error('Invalid token detected, clearing from localStorage:', err.message); // Only logs error message, not token
         localStorage.removeItem('token');
         setToken(null);
       }
     } else {
-      console.warn('No token found');
+      console.warn('No token found'); // Only logs warning, not token
     }
   }, [token]);
 

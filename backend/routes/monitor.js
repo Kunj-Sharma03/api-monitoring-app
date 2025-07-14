@@ -287,6 +287,25 @@ router.get('/:id/stats', auth, async (req, res) => {
   }
 });
 
-
+// 🚨 Get all alerts for the logged-in user
+router.get('/alerts', auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT a.*, m.url AS monitor_url, ml.status AS status
+       FROM alerts a
+       JOIN monitors m ON a.monitor_id = m.id
+       LEFT JOIN LATERAL (
+         SELECT status FROM monitor_logs WHERE monitor_id = m.id ORDER BY timestamp DESC LIMIT 1
+       ) ml ON true
+       WHERE m.user_id = $1
+       ORDER BY a.triggered_at DESC`,
+      [req.user.id]
+    );
+    res.json({ alerts: result.rows });
+  } catch (err) {
+    console.error('Failed to fetch alerts:', err.message);
+    res.status(500).json({ msg: 'Server error fetching alerts' });
+  }
+});
 
 module.exports = router;

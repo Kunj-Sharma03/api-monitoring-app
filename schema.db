@@ -10,7 +10,8 @@ CREATE TABLE monitors (
   url TEXT NOT NULL,
   interval_minutes INTEGER DEFAULT 5,
   alert_threshold INTEGER DEFAULT 3,
-  is_active BOOLEAN DEFAULT true
+  is_active BOOLEAN DEFAULT true,
+  last_checked_at TIMESTAMP DEFAULT NULL
 );
 
 CREATE TABLE monitor_logs (

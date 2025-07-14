@@ -17,6 +17,7 @@ export default function MonitorsPage() {
     monitorId: null,
   });
   const [editModal, setEditModal] = useState({ isOpen: false, monitor: null });
+  const [deleteSuccessModal, setDeleteSuccessModal] = useState(false);
 
   const fetcher = useCallback(
     async (url) => {
@@ -130,7 +131,7 @@ export default function MonitorsPage() {
       }
 
       mutate(); // Refresh the monitors list
-      alert("Monitor deleted successfully");
+      setDeleteSuccessModal(true);
     } catch (err) {
       console.error("Error deleting monitor:", err.message);
       alert("Failed to delete monitor");
@@ -229,25 +230,27 @@ export default function MonitorsPage() {
             >
               <span
                 className={`absolute top-2 right-4 text-sm font-medium flex items-center gap-1 ${
-                  monitor.isUp === true 
-                    ? "text-green-500" 
-                    : monitor.isUp === false 
-                    ? "text-red-500" 
+                  monitor.isUp === true
+                    ? "text-green-500"
+                    : monitor.isUp === false
+                    ? "text-red-500"
                     : "text-yellow-500"
                 }`}
                 style={{ transform: "translateY(50%)" }}
               >
-                <span className={`w-2 h-2 rounded-full ${
-                  monitor.isUp === true 
-                    ? "bg-green-500" 
-                    : monitor.isUp === false 
-                    ? "bg-red-500" 
-                    : "bg-yellow-500"
-                }`}></span>
-                {monitor.isUp === true 
-                  ? "Up" 
-                  : monitor.isUp === false 
-                  ? "Down" 
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    monitor.isUp === true
+                      ? "bg-green-500"
+                      : monitor.isUp === false
+                      ? "bg-red-500"
+                      : "bg-yellow-500"
+                  }`}
+                ></span>
+                {monitor.isUp === true
+                  ? "Up"
+                  : monitor.isUp === false
+                  ? "Down"
                   : "Unknown"}
               </span>
               <div className="flex items-center gap-2 text-lg font-mono">
@@ -298,6 +301,25 @@ export default function MonitorsPage() {
                 className="px-4 py-2 bg-[var(--color-danger)] text-white rounded hover:bg-red-600 transition"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal after Deletion */}
+      {deleteSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-[var(--color-bg)] bg-opacity-50 z-50">
+          <div className="relative bg-[var(--color-surface)] p-6 rounded-xl shadow-lg border border-[var(--color-border)]">
+            <p className="mb-4 text-[var(--color-text-primary)] text-center font-medium">
+              Monitor deleted successfully!
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => setDeleteSuccessModal(false)}
+                className="px-4 py-2 bg-[var(--color-bg)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded hover:bg-[var(--color-hover)] transition"
+              >
+                Close
               </button>
             </div>
           </div>

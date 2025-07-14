@@ -60,9 +60,17 @@ async function checkMonitors() {
       `SELECT * FROM monitors WHERE is_active = true`
     );
 
+    const now = new Date();
     await Promise.all(
       monitors.map((monitor) =>
         limit(async () => {
+          // Only check if enough time has passed since last_checked_at
+          const lastChecked = monitor.last_checked_at ? new Date(monitor.last_checked_at) : null;
+          const intervalMs = monitor.interval_minutes * 60 * 1000;
+          if (lastChecked && now - lastChecked < intervalMs) {
+            return; // Skip this monitor, not time yet
+          }
+
           const start = Date.now();
           let status = 'DOWN';
           let statusCode = 0;
@@ -80,7 +88,6 @@ async function checkMonitors() {
             } catch (retryErr) {
               status = 'DOWN';
               statusCode = retryErr.response?.status || 0;
-
               if (retryErr.response) {
                 errorMessage = `HTTP ${statusCode} - ${retryErr.response.statusText}`;
               } else if (retryErr.request) {
@@ -107,12 +114,16 @@ async function checkMonitors() {
               [monitor.id, status, responseTime, statusCode]
             );
 
+            await safeQuery(
+              `UPDATE monitors SET last_checked_at = NOW() WHERE id = $1`,
+              [monitor.id]
+            );
+
             if (prevStatus && prevStatus !== status) {
               if (isCooldownActive(monitor.last_alert_sent_at)) {
                 console.log(`⏳ Alert skipped for ${monitor.url} (cooldown active)`);
               } else {
                 await sendAlert(monitor, status, logDetails, prevStatus);
-
                 await safeQuery(
                   `INSERT INTO alerts (monitor_id, reason, error_message)
                    VALUES ($1, $2, $3)`,
@@ -122,7 +133,6 @@ async function checkMonitors() {
                     errorMessage,
                   ]
                 );
-
                 await safeQuery(
                   `UPDATE monitors
                    SET last_alert_sent_at = NOW(),
@@ -132,7 +142,6 @@ async function checkMonitors() {
                 );
               }
             }
-
             console.log(`✅ Checked ${monitor.url} → ${status} (${statusCode})`);
           } catch (err) {
             console.error(`❌ Monitor processing error (${monitor.url}):`, err.message);
