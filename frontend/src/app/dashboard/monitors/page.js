@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import useSWR from "swr";
 import { MonitorIcon } from "lucide-react";
 import useAuthToken from "@/hooks/useAuthToken";
@@ -36,6 +36,16 @@ export default function MonitorsPage() {
     fetcher,
     { refreshInterval: 0, revalidateOnFocus: false }
   );
+
+  // Ensure SWR cache is revalidated after updates
+  const handleMonitorUpdate = async (updateFn) => {
+    try {
+      await updateFn();
+      mutate(); // Refresh monitors from server
+    } catch (err) {
+      console.error("Error updating monitor:", err.message);
+    }
+  };
 
   const handleAddMonitor = async (e) => {
     e.preventDefault();
@@ -146,6 +156,9 @@ export default function MonitorsPage() {
     );
   }
 
+  // Adjust is_active filter logic
+  const activeMonitors = monitors.filter((m) => m.is_active);
+
   return (
     <div className="relative z-10 w-full max-w-2xl mx-auto mt-12">
       <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
@@ -203,53 +216,66 @@ export default function MonitorsPage() {
       </form>
 
       {/* Active Monitors List */}
-      {monitors.filter((m) => m.is_active).length === 0 ? (
+      {activeMonitors.length === 0 ? (
         <p className="text-[var(--color-text-secondary)]">
           No active monitors found.
         </p>
       ) : (
         <ul className="space-y-4">
-          {monitors
-            .filter((m) => m.is_active)
-            .map((monitor) => (
-              <li
-                key={monitor.id}
-                className="relative border border-[var(--color-border)] bg-[var(--color-surface)] bg-opacity-90 p-5 rounded-lg shadow flex flex-col gap-2 transition hover:scale-[1.01] hover:shadow-xl"
+          {activeMonitors.map((monitor) => (
+            <li
+              key={monitor.id}
+              className="relative border border-[var(--color-border)] bg-[var(--color-surface)] bg-opacity-90 p-5 rounded-lg shadow flex flex-col gap-2 transition hover:scale-[1.01] hover:shadow-xl"
+            >
+              <span
+                className={`absolute top-2 right-4 text-sm font-medium flex items-center gap-1 ${
+                  monitor.isUp === true 
+                    ? "text-green-500" 
+                    : monitor.isUp === false 
+                    ? "text-red-500" 
+                    : "text-yellow-500"
+                }`}
+                style={{ transform: "translateY(50%)" }}
               >
-                <span
-                  className={`absolute top-2 right-4 text-sm font-medium ${
-                    monitor.isUp ? "text-green-500" : "text-red-500"
-                  }`}
-                  style={{ transform: "translateY(50%)" }}
-                >
-                  {monitor.isUp ? "Up" : "Down"}
+                <span className={`w-2 h-2 rounded-full ${
+                  monitor.isUp === true 
+                    ? "bg-green-500" 
+                    : monitor.isUp === false 
+                    ? "bg-red-500" 
+                    : "bg-yellow-500"
+                }`}></span>
+                {monitor.isUp === true 
+                  ? "Up" 
+                  : monitor.isUp === false 
+                  ? "Down" 
+                  : "Unknown"}
+              </span>
+              <div className="flex items-center gap-2 text-lg font-mono">
+                <span className="font-semibold text-[var(--color-primary)]">
+                  {monitor.url}
                 </span>
-                <div className="flex items-center gap-2 text-lg font-mono">
-                  <span className="font-semibold text-[var(--color-primary)]">
-                    {monitor.url}
-                  </span>
-                  <button
-                    onClick={() => setEditModal({ isOpen: true, monitor })}
-                    className="text-[var(--color-primary)] text-sm border border-[var(--color-border)] px-2 py-1 rounded hover:bg-[var(--color-hover)] transition"
-                  >
-                    Edit
-                  </button>
-                </div>
-                <div className="flex items-center gap-4 text-sm mt-1">
-                  <span className="text-[var(--color-success)]">🟢 Active</span>
-                  <span>Interval: {monitor.interval_minutes} min</span>
-                  <span>Threshold: {monitor.alert_threshold}</span>
-                  <button
-                    onClick={() =>
-                      setDeleteModal({ isOpen: true, monitorId: monitor.id })
-                    }
-                    className="ml-auto text-[var(--color-danger)] hover:text-[var(--color-hover)] transition flex items-center justify-center h-full hover:scale-110"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </li>
-            ))}
+                <button
+                  onClick={() => setEditModal({ isOpen: true, monitor })}
+                  className="text-[var(--color-primary)] text-sm border border-[var(--color-border)] px-2 py-1 rounded hover:bg-[var(--color-hover)] transition"
+                >
+                  Edit
+                </button>
+              </div>
+              <div className="flex items-center gap-4 text-sm mt-1">
+                <span className="text-[var(--color-success)]">🟢 Active</span>
+                <span>Interval: {monitor.interval_minutes} min</span>
+                <span>Threshold: {monitor.alert_threshold}</span>
+                <button
+                  onClick={() =>
+                    setDeleteModal({ isOpen: true, monitorId: monitor.id })
+                  }
+                  className="ml-auto text-[var(--color-danger)] hover:text-[var(--color-hover)] transition flex items-center justify-center h-full hover:scale-110"
+                >
+                  🗑️
+                </button>
+              </div>
+            </li>
+          ))}
         </ul>
       )}
 

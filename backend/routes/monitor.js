@@ -145,7 +145,7 @@ router.get('/:id/alerts', auth, async (req, res) => {
 });
 
 // 📄 Download alert PDF
-router.get('/:monitorId/alert/:alertId/pdf', async (req, res) => {
+router.get('/:monitorId/alert/:alertId/pdf', auth, async (req, res) => {
   const { monitorId, alertId } = req.params;
 
   try {
@@ -183,9 +183,26 @@ router.get('/:monitorId/alert/:alertId/pdf', async (req, res) => {
 router.get('/all', auth, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM monitors WHERE user_id = $1 ORDER BY created_at DESC`,
+      `SELECT 
+        m.*,
+        latest_log.status as latest_status,
+        CASE 
+          WHEN latest_log.status = 'UP' THEN true 
+          WHEN latest_log.status = 'DOWN' THEN false 
+          ELSE null 
+        END as "isUp"
+      FROM monitors m
+      LEFT JOIN (
+        SELECT DISTINCT ON (monitor_id) 
+               monitor_id, status
+        FROM monitor_logs
+        ORDER BY monitor_id, timestamp DESC
+      ) latest_log ON latest_log.monitor_id = m.id
+      WHERE m.user_id = $1 
+      ORDER BY m.created_at DESC`,
       [req.user.id]
     );
+    
     res.json({ monitors: result.rows });
   } catch (err) {
     console.error('Failed to fetch monitors:', err.message);

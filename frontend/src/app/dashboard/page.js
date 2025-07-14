@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [editActive, setEditActive] = useState(true);
   const [updating, setUpdating] = useState(false);
 
-  const token = useAuthToken();
+  const { token } = useAuthToken();
   const { monitors, isLoading, mutate } = useMonitorsSWR();
   const [chartData, setChartData] = useState({ labels: [], uptime: [], incidents: [] });
 

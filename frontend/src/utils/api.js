@@ -1,6 +1,7 @@
 const API_URL = 'http://localhost:5000/api';
 
 export const loginUser = async (email, password) => {
+  console.log('Sending login request to API:', { email, password });
   const res = await fetch(`${API_URL}/login`, {
     method: 'POST',
     headers: {
@@ -10,6 +11,7 @@ export const loginUser = async (email, password) => {
   });
 
   const data = await res.json();
+  console.log('Received response from API:', data);
   if (!res.ok) throw new Error(data.msg || 'Login failed');
   return data;
 };

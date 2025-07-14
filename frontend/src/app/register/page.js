@@ -27,7 +27,13 @@ export default function RegisterPage() {
         return;
       }
 
-      // Save token and redirect
+      console.log('Backend response during registration:', data);
+      if (typeof data.token !== 'string' || !data.token.includes('.')) {
+        console.error('Invalid token received during registration:', data.token);
+        setError('Invalid token received');
+        return;
+      }
+      console.log('Storing token in localStorage during registration:', data.token);
       localStorage.setItem('token', data.token);
       router.push('/dashboard');
     } catch (err) {
