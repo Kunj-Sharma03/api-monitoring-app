@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const { pool } = require('../db');
-const generateAlertPDF = require('../utils/generateAlertpdf');
+const { generateAlertPDF } = require('../utils/generateAlertPDF');
 const path = require('path');
 const fs = require('fs');
 

@@ -7,11 +7,12 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function AlertDetailsModal({ alert, onClose, onDelete }) {
+export default function AlertDetailsModal({ alert, onClose, onDelete, token }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   if (!alert) return null;
 
@@ -98,14 +99,34 @@ export default function AlertDetailsModal({ alert, onClose, onDelete }) {
           </div>
         </div>
         {alert.id && alert.monitor_id && (
-          <a
-            href={`http://localhost:5000/api/monitor/${alert.monitor_id}/alert/${alert.id}/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+          <button
+            onClick={async () => {
+              setDownloading(true);
+              try {
+                const res = await fetch(`http://localhost:5000/api/monitor/${alert.monitor_id}/alert/${alert.id}/pdf`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) throw new Error("Failed to download PDF");
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `alert.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+              } catch (err) {
+                window.alert("Failed to download PDF");
+              } finally {
+                setDownloading(false);
+              }
+            }}
+            className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-60"
+            disabled={downloading}
           >
-            Download PDF
-          </a>
+            {downloading ? "Downloading..." : "Download PDF"}
+          </button>
         )}
         <SheetFooter>
           <div className="flex justify-center gap-4 mt-8">

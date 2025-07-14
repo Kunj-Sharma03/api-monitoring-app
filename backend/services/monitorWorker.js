@@ -1,7 +1,7 @@
 const { pool, safeQuery } = require('../db');
 const axios = require('axios');
 const sendEmail = require('../utils/sendEmail');
-const generateAlertPDF = require('../utils/generateAlertpdf');
+const generateAlertPDF = require('../utils/generateAlertPDF');
 const fs = require('fs');
 const os = require('os');
 const pLimit = require('p-limit').default;

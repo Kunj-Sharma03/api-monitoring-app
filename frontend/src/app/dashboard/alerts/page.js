@@ -162,7 +162,7 @@ export default function AlertsPage() {
       )}
       {/* Modal for alert details */}
       {selectedAlert && (
-        <AlertDetailsModal alert={selectedAlert} onClose={() => setSelectedAlert(null)} />
+        <AlertDetailsModal alert={selectedAlert} onClose={() => setSelectedAlert(null)} token={token} />
       )}
     </div>
   );
