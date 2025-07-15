@@ -33,8 +33,6 @@ export default function Dashboard() {
       setAnalytics(prev => ({ ...prev, loading: true }));
       
       try {
-        console.log('Fetching analytics data for range:', timeRange);
-        
         const [overviewRes, uptimeRes, responseRes, alertsRes] = await Promise.all([
           fetch(`http://localhost:5000/api/analytics/overview?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -50,26 +48,12 @@ export default function Dashboard() {
           })
         ]);
 
-        console.log('Analytics API responses:', {
-          overview: overviewRes.status,
-          uptime: uptimeRes.status,
-          response: responseRes.status,
-          alerts: alertsRes.status
-        });
-
         const [overview, uptimeHistory, responseTime, alertsHistory] = await Promise.all([
           overviewRes.ok ? overviewRes.json() : null,
           uptimeRes.ok ? uptimeRes.json() : { data: [] },
           responseRes.ok ? responseRes.json() : { data: [] },
           alertsRes.ok ? alertsRes.json() : { data: [] }
         ]);
-
-        console.log('Parsed analytics data:', {
-          overview,
-          uptimeHistory: uptimeHistory.data?.length || 0,
-          responseTime: responseTime.data?.length || 0,
-          alertsHistory: alertsHistory.data?.length || 0
-        });
 
         setAnalytics({
           overview,
@@ -110,10 +94,10 @@ export default function Dashboard() {
           </button>
           
           {/* Main Content */}
-          <div className="flex flex-col items-center justify-center w-full h-full -mt-16">
+          <div className="flex flex-col items-center justify-center w-full h-full">
             <SplitText
               text="Hello, User!"
-              className="text-4xl font-bold font-sans text-center mb-6"
+              className="text-4xl font-bold font-sans text-center mb-8"
               delay={60}
               duration={0.6}
               ease="power3.out"
@@ -126,7 +110,7 @@ export default function Dashboard() {
             />
             
             {/* Main Stats - Total and Active Monitors */}
-            <div className="flex flex-row gap-12 w-full justify-center z-10">
+            <div className="flex flex-row gap-12 mt-2 w-full justify-center z-10">
               <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-10 py-8 min-w-[180px] shadow-md">
                 <MonitorIcon className="w-10 h-10 text-[var(--color-primary)] mb-2" />
                 <span className="text-sm text-[var(--color-text-secondary)] font-sans">Total Monitors</span>
@@ -148,42 +132,9 @@ export default function Dashboard() {
         </div>
 
         {/* Analytics Section - Scroll Reveal */}
-        <div className="w-full space-y-16 pb-32">
-          {/* Time Range Selector */}
-          <ScrollReveal 
-            baseOpacity={0.1} 
-            enableBlur={true} 
-            baseRotation={1} 
-            blurStrength={4}
-            containerClassName="time-range-selector"
-          >
-            <div className="w-full max-w-7xl mx-auto flex justify-center mb-8">
-              <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-xl p-4 shadow-lg">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-[var(--color-text-primary)]">Time Range:</span>
-                  <select
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(e.target.value)}
-                    className="bg-[var(--color-bg)] bg-opacity-80 border border-[var(--color-border)] text-[var(--color-text-primary)] px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                  >
-                    <option value="24h">Last 24 Hours</option>
-                    <option value="7d">Last 7 Days</option>
-                    <option value="30d">Last 30 Days</option>
-                    <option value="90d">Last 90 Days</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </ScrollReveal>
-
+        <div className="w-full space-y-16 pb-16">
           {/* Overview Stats */}
-          <ScrollReveal 
-            baseOpacity={0.1} 
-            enableBlur={true} 
-            baseRotation={1} 
-            blurStrength={4}
-            containerClassName="overview-stats"
-          >
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
             <div className="w-full max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
                 Overview Analytics
@@ -230,7 +181,7 @@ export default function Dashboard() {
           </ScrollReveal>
 
           {/* Uptime Trend Chart */}
-          <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
             <div className="w-full max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
                 Uptime Trend
@@ -246,12 +197,6 @@ export default function Dashboard() {
                 {analytics.loading ? (
                   <div className="w-full h-[350px] flex items-center justify-center">
                     <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
-                  </div>
-                ) : analytics.uptimeHistory.length === 0 ? (
-                  <div className="w-full h-[350px] flex flex-col items-center justify-center text-center">
-                    <Activity className="w-16 h-16 text-[var(--color-text-secondary)] opacity-50 mb-4" />
-                    <p className="text-[var(--color-text-secondary)] text-lg">No uptime data available</p>
-                    <p className="text-[var(--color-text-secondary)] text-sm mt-2">Data will appear once monitors start collecting metrics</p>
                   </div>
                 ) : (
                   <Chart
@@ -307,7 +252,7 @@ export default function Dashboard() {
           </ScrollReveal>
 
           {/* Response Time Chart */}
-          <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
             <div className="w-full max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
                 Response Time Trend
@@ -323,12 +268,6 @@ export default function Dashboard() {
                 {analytics.loading ? (
                   <div className="w-full h-[350px] flex items-center justify-center">
                     <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
-                  </div>
-                ) : analytics.responseTime.length === 0 ? (
-                  <div className="w-full h-[350px] flex flex-col items-center justify-center text-center">
-                    <TrendingUp className="w-16 h-16 text-[var(--color-text-secondary)] opacity-50 mb-4" />
-                    <p className="text-[var(--color-text-secondary)] text-lg">No response time data available</p>
-                    <p className="text-[var(--color-text-secondary)] text-sm mt-2">Data will appear once monitors start collecting metrics</p>
                   </div>
                 ) : (
                   <Chart
@@ -383,7 +322,7 @@ export default function Dashboard() {
           </ScrollReveal>
 
           {/* Alerts History Chart */}
-          <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
             <div className="w-full max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
                 Alerts History
@@ -399,12 +338,6 @@ export default function Dashboard() {
                 {analytics.loading ? (
                   <div className="w-full h-[350px] flex items-center justify-center">
                     <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
-                  </div>
-                ) : analytics.alertsHistory.length === 0 ? (
-                  <div className="w-full h-[350px] flex flex-col items-center justify-center text-center">
-                    <AlertTriangle className="w-16 h-16 text-[var(--color-text-secondary)] opacity-50 mb-4" />
-                    <p className="text-[var(--color-text-secondary)] text-lg">No alerts data available</p>
-                    <p className="text-[var(--color-text-secondary)] text-sm mt-2">Data will appear when alerts are triggered</p>
                   </div>
                 ) : (
                   <Chart
@@ -454,8 +387,8 @@ export default function Dashboard() {
           </ScrollReveal>
 
           {/* Call to Action */}
-          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={6} animationEnd="bottom bottom">
-            <div className="w-full max-w-4xl mx-auto text-center py-24">
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
+            <div className="w-full max-w-4xl mx-auto text-center py-16">
               <h2 className="text-3xl font-bold mb-6 text-[var(--color-text-primary)]">
                 Ready to dive deeper?
               </h2>

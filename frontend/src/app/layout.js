@@ -1,5 +1,5 @@
 
-import { Inter, Fira_Mono, JetBrains_Mono, Sora, Nunito_Sans } from "next/font/google";
+import { Inter, JetBrains_Mono, Sora, Nunito_Sans } from "next/font/google";
 const nunitoSans = Nunito_Sans({
   variable: "--font-nunito-sans",
   subsets: ["latin"],
@@ -22,13 +22,6 @@ const sora = Sora({
   weight: ["400", "500", "700"],
 });
 
-const firaMono = Fira_Mono({
-  variable: "--font-fira-mono",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["400", "500", "700"],
-});
-
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
@@ -46,7 +39,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`font-sans antialiased ${inter.variable} ${sora.variable} ${firaMono.variable} ${jetbrainsMono.variable} ${nunitoSans.variable}`}
+        className={`font-sans antialiased ${inter.variable} ${sora.variable} ${jetbrainsMono.variable} ${nunitoSans.variable}`}
       >
         {children}
       </body>

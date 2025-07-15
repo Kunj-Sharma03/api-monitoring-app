@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import useMonitorsSWR from '@/hooks/useMonitorsSWR';
 import useAuthToken from '@/hooks/useAuthToken';
 import ScrollReveal from '@/components/ui/ScrollReveal';
@@ -33,8 +33,6 @@ export default function Dashboard() {
       setAnalytics(prev => ({ ...prev, loading: true }));
       
       try {
-        console.log('Fetching analytics data for range:', timeRange);
-        
         const [overviewRes, uptimeRes, responseRes, alertsRes] = await Promise.all([
           fetch(`http://localhost:5000/api/analytics/overview?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -50,26 +48,12 @@ export default function Dashboard() {
           })
         ]);
 
-        console.log('Analytics API responses:', {
-          overview: overviewRes.status,
-          uptime: uptimeRes.status,
-          response: responseRes.status,
-          alerts: alertsRes.status
-        });
-
         const [overview, uptimeHistory, responseTime, alertsHistory] = await Promise.all([
           overviewRes.ok ? overviewRes.json() : null,
           uptimeRes.ok ? uptimeRes.json() : { data: [] },
           responseRes.ok ? responseRes.json() : { data: [] },
           alertsRes.ok ? alertsRes.json() : { data: [] }
         ]);
-
-        console.log('Parsed analytics data:', {
-          overview,
-          uptimeHistory: uptimeHistory.data?.length || 0,
-          responseTime: responseTime.data?.length || 0,
-          alertsHistory: alertsHistory.data?.length || 0
-        });
 
         setAnalytics({
           overview,
@@ -87,10 +71,221 @@ export default function Dashboard() {
     fetchAnalytics();
   }, [token, timeRange]);
 
+  // Fetch chart data when monitors change
+  // Advanced: Parallelize stats requests with concurrency limit, update chart as data arrives
+  React.useEffect(() => {
+    if (!token || !monitors.length) return;
+    let cancelled = false;
+    const limit = pLimit(4); // 4 concurrent requests
+    const statsArr = new Array(monitors.length);
+    setChartData({ labels: [], uptime: [], incidents: [] });
+
+    async function fetchStats() {
+      await Promise.all(
+        monitors.map((monitor, i) =>
+          limit(async () => {
+            try {
+              const statsRes = await fetch(`http://localhost:5000/api/monitor/${monitor.id}/stats`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (!statsRes.ok) return;
+              const stats = await statsRes.json();
+              statsArr[i] = {
+                label: monitor.url,
+                uptime: Number(stats.uptimePercent),
+                incidents: stats.totalAlerts,
+              };
+              // Update chart as each stat arrives
+              if (!cancelled) {
+                const filtered = statsArr.filter(Boolean);
+                setChartData({
+                  labels: filtered.map((s) => s.label),
+                  uptime: filtered.map((s) => s.uptime),
+                  incidents: filtered.map((s) => s.incidents),
+                });
+              }
+            } catch {}
+          })
+        )
+      );
+    }
+    fetchStats();
+    return () => { cancelled = true; };
+  }, [token, monitors]);
+
+  const createMonitor = async (e) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/monitor/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          url,
+          interval_minutes: interval,
+          alert_threshold: threshold,
+        }),
+      });
+
+      if (res.ok) {
+        setUrl('');
+        setInterval(5);
+        setThreshold(3);
+        mutate(); // revalidate SWR cache
+      }
+    } catch (err) {
+      console.error('Failed to create monitor:', err.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const fetchLogs = async (monitorId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/logs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setLogs(data.logs || []);
+      setAlerts([]);
+      setActiveView({ monitorId, type: 'logs' });
+    } catch (err) {
+      console.error('Error fetching logs:', err.message);
+    }
+  };
+
+  const fetchAlerts = async (monitorId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alerts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setAlerts(data.alerts || []);
+      setLogs([]);
+      setActiveView({ monitorId, type: 'alerts' });
+    } catch (err) {
+      console.error('Error fetching alerts:', err.message);
+    }
+  };
+
+  const downloadPDF = async (monitorId, alertId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alert/${alertId}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error('PDF download failed');
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `alert-${alertId}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download PDF:', err.message);
+    }
+  };
+
+  const updateMonitor = async (e) => {
+  e.preventDefault();
+  if (!editingMonitor) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/monitor/${editingMonitor.id}/update`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({
+        url: editUrl,
+        interval_minutes: editInterval,
+        alert_threshold: editThreshold,
+        is_active: editActive,
+      }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      alert(`Failed to update monitor: ${error.msg || error.errors?.[0]?.msg}`);
+      return;
+    }
+
+    const updated = await res.json();
+
+    mutate(); // Refresh monitors from server
+
+    setEditingMonitor(null); // Close modal
+  } catch (err) {
+    console.error('Update failed:', err.message);
+    alert('Something went wrong while updating.');
+  }
+};
+
+const deleteMonitor = async (id) => {
+  if (!confirm('Deleting this monitor will also remove all associated logs and alerts. Proceed?')) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/monitor/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      alert('Failed to delete monitor');
+      return;
+    }
+
+    mutate(); // Refresh monitors from server
+  } catch (err) {
+    console.error('Delete failed:', err.message);
+    alert('Something went wrong while deleting.');
+  }
+};
+
+const deleteAlert = async (alert) => {
+  if (!alert || !alert.id) return;
+  if (!confirm('Are you sure you want to delete this alert?')) return;
+  try {
+    const res = await fetch(`http://localhost:5000/api/monitor/alert/${alert.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('Failed to delete alert');
+    // Remove alert from state
+    setAlerts(prev => prev.filter(a => a.id !== alert.id));
+  } catch (err) {
+    alert('Error deleting alert: ' + err.message);
+  }
+};
+
+
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/login');
   };
+
+  const filteredMonitors = useMemo(() => {
+  let result = [...monitors];
+  if (statusFilter !== 'ALL') {
+    result = result.filter((m) => String(m.is_active) === statusFilter);
+  }
+  result.sort((a, b) => {
+    if (sortBy === 'url') return a.url.localeCompare(b.url);
+    if (sortBy === 'interval') return a.interval_minutes - b.interval_minutes;
+    if (sortBy === 'threshold') return a.alert_threshold - b.alert_threshold;
+    return 0;
+  });
+  return result;
+}, [monitors, statusFilter, sortBy]);
 
   // Memoize SplitText animation props to prevent infinite re-renders
   const splitTextFrom = useMemo(() => ({ opacity: 0, y: 40 }), []);
@@ -110,10 +305,10 @@ export default function Dashboard() {
           </button>
           
           {/* Main Content */}
-          <div className="flex flex-col items-center justify-center w-full h-full -mt-16">
+          <div className="flex flex-col items-center justify-center w-full h-full">
             <SplitText
               text="Hello, User!"
-              className="text-4xl font-bold font-sans text-center mb-6"
+              className="text-4xl font-bold font-sans text-center mb-8"
               delay={60}
               duration={0.6}
               ease="power3.out"
@@ -126,7 +321,7 @@ export default function Dashboard() {
             />
             
             {/* Main Stats - Total and Active Monitors */}
-            <div className="flex flex-row gap-12 w-full justify-center z-10">
+            <div className="flex flex-row gap-12 mt-2 w-full justify-center z-10">
               <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-10 py-8 min-w-[180px] shadow-md">
                 <MonitorIcon className="w-10 h-10 text-[var(--color-primary)] mb-2" />
                 <span className="text-sm text-[var(--color-text-secondary)] font-sans">Total Monitors</span>
@@ -148,42 +343,9 @@ export default function Dashboard() {
         </div>
 
         {/* Analytics Section - Scroll Reveal */}
-        <div className="w-full space-y-16 pb-32">
-          {/* Time Range Selector */}
-          <ScrollReveal 
-            baseOpacity={0.1} 
-            enableBlur={true} 
-            baseRotation={1} 
-            blurStrength={4}
-            containerClassName="time-range-selector"
-          >
-            <div className="w-full max-w-7xl mx-auto flex justify-center mb-8">
-              <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-xl p-4 shadow-lg">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-[var(--color-text-primary)]">Time Range:</span>
-                  <select
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(e.target.value)}
-                    className="bg-[var(--color-bg)] bg-opacity-80 border border-[var(--color-border)] text-[var(--color-text-primary)] px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                  >
-                    <option value="24h">Last 24 Hours</option>
-                    <option value="7d">Last 7 Days</option>
-                    <option value="30d">Last 30 Days</option>
-                    <option value="90d">Last 90 Days</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </ScrollReveal>
-
+        <div className="w-full space-y-16 pb-16">
           {/* Overview Stats */}
-          <ScrollReveal 
-            baseOpacity={0.1} 
-            enableBlur={true} 
-            baseRotation={1} 
-            blurStrength={4}
-            containerClassName="overview-stats"
-          >
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
             <div className="w-full max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
                 Overview Analytics
@@ -230,7 +392,7 @@ export default function Dashboard() {
           </ScrollReveal>
 
           {/* Uptime Trend Chart */}
-          <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
             <div className="w-full max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
                 Uptime Trend
@@ -246,12 +408,6 @@ export default function Dashboard() {
                 {analytics.loading ? (
                   <div className="w-full h-[350px] flex items-center justify-center">
                     <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
-                  </div>
-                ) : analytics.uptimeHistory.length === 0 ? (
-                  <div className="w-full h-[350px] flex flex-col items-center justify-center text-center">
-                    <Activity className="w-16 h-16 text-[var(--color-text-secondary)] opacity-50 mb-4" />
-                    <p className="text-[var(--color-text-secondary)] text-lg">No uptime data available</p>
-                    <p className="text-[var(--color-text-secondary)] text-sm mt-2">Data will appear once monitors start collecting metrics</p>
                   </div>
                 ) : (
                   <Chart
@@ -307,7 +463,7 @@ export default function Dashboard() {
           </ScrollReveal>
 
           {/* Response Time Chart */}
-          <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
             <div className="w-full max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
                 Response Time Trend
@@ -323,12 +479,6 @@ export default function Dashboard() {
                 {analytics.loading ? (
                   <div className="w-full h-[350px] flex items-center justify-center">
                     <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
-                  </div>
-                ) : analytics.responseTime.length === 0 ? (
-                  <div className="w-full h-[350px] flex flex-col items-center justify-center text-center">
-                    <TrendingUp className="w-16 h-16 text-[var(--color-text-secondary)] opacity-50 mb-4" />
-                    <p className="text-[var(--color-text-secondary)] text-lg">No response time data available</p>
-                    <p className="text-[var(--color-text-secondary)] text-sm mt-2">Data will appear once monitors start collecting metrics</p>
                   </div>
                 ) : (
                   <Chart
@@ -383,7 +533,7 @@ export default function Dashboard() {
           </ScrollReveal>
 
           {/* Alerts History Chart */}
-          <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
             <div className="w-full max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
                 Alerts History
@@ -399,12 +549,6 @@ export default function Dashboard() {
                 {analytics.loading ? (
                   <div className="w-full h-[350px] flex items-center justify-center">
                     <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
-                  </div>
-                ) : analytics.alertsHistory.length === 0 ? (
-                  <div className="w-full h-[350px] flex flex-col items-center justify-center text-center">
-                    <AlertTriangle className="w-16 h-16 text-[var(--color-text-secondary)] opacity-50 mb-4" />
-                    <p className="text-[var(--color-text-secondary)] text-lg">No alerts data available</p>
-                    <p className="text-[var(--color-text-secondary)] text-sm mt-2">Data will appear when alerts are triggered</p>
                   </div>
                 ) : (
                   <Chart
@@ -454,8 +598,8 @@ export default function Dashboard() {
           </ScrollReveal>
 
           {/* Call to Action */}
-          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={6} animationEnd="bottom bottom">
-            <div className="w-full max-w-4xl mx-auto text-center py-24">
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
+            <div className="w-full max-w-4xl mx-auto text-center py-16">
               <h2 className="text-3xl font-bold mb-6 text-[var(--color-text-primary)]">
                 Ready to dive deeper?
               </h2>
@@ -483,3 +627,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

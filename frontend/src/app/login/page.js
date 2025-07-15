@@ -12,18 +12,14 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('handleLogin function executed');
     setError('');
 
     try {
       const data = await loginUser(email, password);
-      console.log('Backend response during login:', data);
       if (typeof data.token !== 'string' || !data.token.includes('.')) {
-        console.error('Invalid token received during login:', data.token);
         setError('Invalid token received');
         return;
       }
-      console.log('Storing token in localStorage during login:', data.token);
       localStorage.setItem('token', data.token);
       router.push('/dashboard');
     } catch (err) {

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 
-export default function AlertDetailsModal({ alert, onClose, onDelete, token }) {
+export default function AlertDetailsModal({ alert, onClose, onDelete = () => {}, token }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -57,7 +57,10 @@ export default function AlertDetailsModal({ alert, onClose, onDelete, token }) {
           </p>
           <div className="flex justify-center">
             <button
-              onClick={() => { setDeleteSuccess(false); onClose(); }}
+              onClick={() => {
+                setDeleteSuccess(false);
+                onClose();
+              }}
               className="px-5 py-2 bg-[var(--color-bg)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-hover)] transition font-medium"
             >
               Close

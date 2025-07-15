@@ -28,6 +28,7 @@ const ScrollReveal = ({
   animationEnd = "bottom bottom"
 }) => {
   const containerRef = useRef(null);
+  const scrollTriggerRef = useRef(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -38,32 +39,53 @@ const ScrollReveal = ({
         ? scrollContainerRef.current
         : window;
 
-    // Animate the container (opacity, blur, rotation)
-    gsap.fromTo(
+    // Clean up previous trigger for this specific element
+    if (scrollTriggerRef.current) {
+      scrollTriggerRef.current.kill();
+    }
+
+    // Animate the container (opacity, blur, rotation, scale)
+    const tl = gsap.fromTo(
       el,
       {
         opacity: baseOpacity,
-        scale: 0.98, // Removed blur and rotation for performance
-        willChange: 'opacity, transform',
-        transformOrigin: '0% 50%'
+        scale: 0.85,
+        rotationX: enableBlur ? baseRotation : 0,
+        y: 30,
+        filter: enableBlur ? `blur(${blurStrength}px)` : 'blur(0px)',
+        willChange: 'opacity, transform, filter',
+        transformOrigin: '50% 50%'
       },
       {
         opacity: 1,
         scale: 1,
+        rotationX: 0,
+        y: 0,
+        filter: 'blur(0px)',
         ease: 'power2.out',
-        duration: 0.8, // Reduced duration for snappier animations
+        duration: 1.2,
         scrollTrigger: {
           trigger: el,
           scroller,
-          start: 'top 70%', // Adjusted start position for smoother experience
-          end: animationEnd,
-          scrub: 0.3, // Slightly reduced scrub for responsiveness
+          start: 'top 80%',
+          end: animationEnd || 'top 30%',
+          scrub: 0.5,
+          toggleActions: "play none none reverse",
+          onEnter: () => console.log('ScrollReveal triggered for:', el.className),
+          onUpdate: (self) => console.log('ScrollReveal progress:', self.progress)
         },
       }
     );
 
+    // Store the scroll trigger reference
+    scrollTriggerRef.current = ScrollTrigger.getById(tl.scrollTrigger.id);
+
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      // Only kill this specific trigger
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
+      }
+      tl.kill();
     };
   }, [scrollContainerRef, enableBlur, baseRotation, baseOpacity, animationEnd, blurStrength]);
 

@@ -193,8 +193,6 @@ function Sidebar({
   return (
     <div
       className="relative z-20"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       <div
         className={cn(
@@ -221,6 +219,8 @@ function Sidebar({
         />
         <div
           data-slot="sidebar-container"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           className={cn(
             // Basic styles
             "fixed inset-y-0 z-10 hidden h-svh transition-all duration-200 ease-in-out md:flex",

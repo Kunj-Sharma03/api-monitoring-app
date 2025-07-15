@@ -7,6 +7,7 @@ const apiLimiter = require('./middleware/rateLimiter');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
 const monitorRoutes = require('./routes/monitor');
+const analyticsRoutes = require('./routes/analytics');
 const checkMonitors = require('./services/monitorWorker');
 const { pool } = require('./db');
 require('dotenv').config();
@@ -29,6 +30,7 @@ app.use('/api', apiLimiter);
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/monitor', monitorRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ⏱️ Cron monitor check (runs every minute)
 let isChecking = false;

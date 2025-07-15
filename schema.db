@@ -1,24 +1,43 @@
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL
-);
+create table public.alerts (
+  id serial not null,
+  monitor_id integer null,
+  triggered_at timestamp without time zone null default now(),
+  reason text null,
+  error_message text null,
+  constraint alerts_pkey primary key (id),
+  constraint alerts_monitor_id_fkey foreign KEY (monitor_id) references monitors (id) on delete CASCADE
+) TABLESPACE pg_default;
 
-CREATE TABLE monitors (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
-  url TEXT NOT NULL,
-  interval_minutes INTEGER DEFAULT 5,
-  alert_threshold INTEGER DEFAULT 3,
-  is_active BOOLEAN DEFAULT true,
-  last_checked_at TIMESTAMP DEFAULT NULL
-);
+create table public.monitor_logs (
+  id serial not null,
+  monitor_id integer null,
+  timestamp timestamp without time zone null default now(),
+  status text null,
+  status_code integer null,
+  response_time integer null,
+  constraint monitor_logs_pkey primary key (id),
+  constraint monitor_logs_monitor_id_fkey foreign KEY (monitor_id) references monitors (id) on delete CASCADE
+) TABLESPACE pg_default;
 
-CREATE TABLE monitor_logs (
-  id SERIAL PRIMARY KEY,
-  monitor_id INTEGER REFERENCES monitors(id),
-  timestamp TIMESTAMP DEFAULT NOW(),
-  status TEXT,
-  status_code INTEGER,
-  response_time INTEGER
-);
+create table public.monitors (
+  id serial not null,
+  user_id integer null,
+  url text not null,
+  interval_minutes integer null default 5,
+  alert_threshold integer null default 3,
+  is_active boolean null default true,
+  last_alert_sent_at timestamp without time zone null,
+  status_change_count integer null default 0,
+  created_at timestamp without time zone null default CURRENT_TIMESTAMP,
+  last_checked_at timestamp without time zone null,
+  constraint monitors_pkey primary key (id),
+  constraint monitors_user_id_fkey foreign KEY (user_id) references users (id)
+) TABLESPACE pg_default;
+
+create table public.users (
+  id serial not null,
+  email text not null,
+  password_hash text not null,
+  constraint users_pkey primary key (id),
+  constraint users_email_key unique (email)
+) TABLESPACE pg_default;

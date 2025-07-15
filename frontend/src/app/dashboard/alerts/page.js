@@ -87,25 +87,27 @@ export default function AlertsPage() {
           <select
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
-            className="bg-transparent outline-none text-sm"
+            className="bg-transparent outline-none text-sm text-[var(--color-text-primary)] appearance-none focus:ring-2 focus:ring-[var(--color-primary)] border border-[var(--color-border)] rounded"
             aria-label="Filter by status"
+            style={{ background: 'rgba(30,41,59,0.7)' }}
           >
-            <option value="">All Statuses</option>
-            <option value="UP">UP</option>
-            <option value="DOWN">DOWN</option>
+            <option value="" className="bg-[var(--color-surface)] text-[var(--color-text-secondary)]">All Statuses</option>
+            <option value="UP" className="bg-[var(--color-surface)] text-green-600">UP</option>
+            <option value="DOWN" className="bg-[var(--color-surface)] text-red-600">DOWN</option>
           </select>
         </div>
         <div className="flex items-center gap-2 bg-[var(--color-surface)] rounded px-2 py-1">
-          <span className="text-xs text-gray-500">Sort by:</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">Sort by:</span>
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}
-            className="bg-transparent outline-none text-sm"
+            className="bg-transparent outline-none text-sm text-[var(--color-text-primary)] appearance-none focus:ring-2 focus:ring-[var(--color-primary)] border border-[var(--color-border)] rounded"
             aria-label="Sort by"
+            style={{ background: 'rgba(30,41,59,0.7)' }}
           >
-            <option value="triggered_at">Date</option>
-            <option value="status">Status</option>
-            <option value="monitor_url">Monitor</option>
+            <option value="triggered_at" className="bg-[var(--color-surface)] text-[var(--color-text-secondary)]">Date</option>
+            <option value="status" className="bg-[var(--color-surface)] text-[var(--color-text-secondary)]">Status</option>
+            <option value="monitor_url" className="bg-[var(--color-surface)] text-[var(--color-text-secondary)]">Monitor</option>
           </select>
           <button
             onClick={() => setSortDir(sortDir === "desc" ? "asc" : "desc")}
@@ -162,7 +164,24 @@ export default function AlertsPage() {
       )}
       {/* Modal for alert details */}
       {selectedAlert && (
-        <AlertDetailsModal alert={selectedAlert} onClose={() => setSelectedAlert(null)} token={token} />
+        <AlertDetailsModal
+          alert={selectedAlert}
+          onClose={() => setSelectedAlert(null)}
+          token={token}
+          onDelete={async (alert) => {
+            if (!alert || !alert.id) return;
+            try {
+              const res = await fetch(`http://localhost:5000/api/monitor/alert/${alert.id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (!res.ok) throw new Error('Failed to delete alert');
+              setAlerts(prev => prev.filter(a => a.id !== alert.id));
+            } catch (err) {
+              alert('Error deleting alert: ' + err.message);
+            }
+          }}
+        />
       )}
     </div>
   );

@@ -308,4 +308,25 @@ router.get('/alerts', auth, async (req, res) => {
   }
 });
 
+// 🧽 Delete alert
+router.delete('/alert/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Find alert and ensure user owns the monitor
+    const alertRes = await pool.query(
+      `SELECT a.*, m.user_id FROM alerts a JOIN monitors m ON a.monitor_id = m.id WHERE a.id = $1`,
+      [id]
+    );
+    if (alertRes.rowCount === 0 || alertRes.rows[0].user_id !== req.user.id) {
+      return res.status(404).json({ msg: 'Alert not found or unauthorized' });
+    }
+    // Delete alert
+    const delRes = await pool.query(`DELETE FROM alerts WHERE id = $1 RETURNING *`, [id]);
+    res.json({ msg: 'Alert deleted', alert: delRes.rows[0] });
+  } catch (err) {
+    console.error('Error deleting alert:', err.message, err);
+    res.status(500).json({ msg: 'Server error deleting alert', error: err.message });
+  }
+});
+
 module.exports = router;

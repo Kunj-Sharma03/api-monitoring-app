@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
     const token = jwt.sign({ id: result.rows[0].id }, process.env.JWT_SECRET, {
       expiresIn: '7d',
     });
-    console.log('Generated token during registration:', token);
+
 
     res.json({ token, user: result.rows[0] });
   } catch (err) {
@@ -44,7 +44,6 @@ router.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    console.log('Generated token during login:', token);
 
     res.json({ token, user: { id: user.id, email: user.email } });
   } catch (err) {
