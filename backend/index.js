@@ -1,6 +1,9 @@
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const session = require('express-session');
+const passport = require('passport');
 const cron = require('node-cron');
 const LOG_CLEANUP_DAYS = parseInt(process.env.LOG_CLEANUP_DAYS || '7');
 const apiLimiter = require('./middleware/rateLimiter');
@@ -10,13 +13,24 @@ const monitorRoutes = require('./routes/monitor');
 const analyticsRoutes = require('./routes/analytics');
 const checkMonitors = require('./services/monitorWorker');
 const { pool } = require('./db');
-require('dotenv').config();
 const validateEnv = require('./utils/validateEnv');
 validateEnv();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Session middleware for Passport
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'supersecret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }, // Set to true if using HTTPS
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // 🌐 Root route
 app.get('/', (req, res) => {

@@ -1,8 +1,60 @@
+
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { pool } = require('../db'); // we'll set this up next
+const { pool } = require('../db');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const router = express.Router();
+
+// Passport Google OAuth setup
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL,
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    // Find or create user in DB
+    const email = profile.emails[0].value;
+    let userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let user = userResult.rows[0];
+    if (!user) {
+      // Create user if not exists
+      const newUserResult = await pool.query(
+        'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
+        [email, null]
+      );
+      user = newUserResult.rows[0];
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err, null);
+  }
+}));
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+passport.deserializeUser(async (id, done) => {
+  try {
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    done(null, userResult.rows[0]);
+  } catch (err) {
+    done(err, null);
+  }
+});
+
+// Google OAuth routes
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login', session: false }), async (req, res) => {
+  // Issue JWT after successful OAuth login
+  const user = req.user;
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  // Redirect to frontend callback with token
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+});
 
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
@@ -51,6 +103,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 
 module.exports = router;
