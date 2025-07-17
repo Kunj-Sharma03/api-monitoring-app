@@ -192,48 +192,13 @@ export default function Layout({ children }) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
-
-              {/* Bottom items */}
-              <div className="flex flex-col items-center w-full mt-auto mb-4 gap-2">
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === "/dashboard/settings"}
-                      className="flex items-center px-4 py-2 gap-3"
-                    >
-                      <Link
-                        href="/dashboard/settings"
-                        className="flex items-center gap-3"
-                      >
-                        <SettingsIcon className="h-5 w-5" />
-                        <span className="sidebar-label">Settings</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-
-                {/* Account avatar */}
-                <div className="flex flex-col items-center w-full">
-                  <div className="w-full flex justify-center">
-                    <div className="w-8 h-8 rounded-full bg-[var(--color-hover)] flex items-center justify-center shrink-0">
-                      <span className="text-sm font-bold text-[var(--color-text-secondary)]">
-                        A
-                      </span>
-                    </div>
-                  </div>
-                  <span className="sidebar-label text-xs text-[var(--color-text-secondary)] whitespace-nowrap overflow-hidden mt-1 text-center">
-                    Account
-                  </span>
-                </div>
-              </div>
             </SidebarContent>
           </Sidebar>
         </SidebarProvider>
       </div>
 
-      {/* Main content slot */}
-      <main className="flex-1 min-h-screen bg-[var(--color-bg)] bg-opacity-80 text-[var(--color-text-primary)]">
+      {/* Main Content */}
+      <main className="flex-1 min-h-screen bg-[var(--color-bg)] bg-opacity-80 text-[var(--color-text-primary)] lg:ml-0 relative z-10 pt-16 lg:pt-0 px-4 lg:px-6">
         {children}
       </main>
     </div>

@@ -5,6 +5,8 @@ import useSWR from "swr";
 import { MonitorIcon } from "lucide-react";
 import useAuthToken from "@/hooks/useAuthToken";
 
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app'}/api`;
+
 export default function MonitorsPage() {
   const { token, loading } = useAuthToken();
 
@@ -33,7 +35,7 @@ export default function MonitorsPage() {
   const shouldFetch = !!token && !loading;
 
   const { data: monitors = [], isLoading, mutate } = useSWR(
-    shouldFetch ? "http://localhost:5000/api/monitor/all" : null,
+    shouldFetch ? `${API_URL}/monitor/all` : null,
     fetcher,
     { refreshInterval: 0, revalidateOnFocus: false }
   );
@@ -52,7 +54,7 @@ export default function MonitorsPage() {
     e.preventDefault();
     setCreating(true);
     try {
-      const res = await fetch("http://localhost:5000/api/monitor/create", {
+      const res = await fetch(`${API_URL}/monitor/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +86,7 @@ export default function MonitorsPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/monitor/${monitor.id}/update`,
+        `${API_URL}/monitor/${monitor.id}/update`,
         {
           method: "PUT",
           headers: {
@@ -118,7 +120,7 @@ export default function MonitorsPage() {
     setDeleteModal({ isOpen: false, monitorId: null });
 
     try {
-      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}`, {
+      const res = await fetch(`${API_URL}/monitor/${monitorId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -140,16 +142,16 @@ export default function MonitorsPage() {
 
   if (loading || isLoading) {
     return (
-      <div className="relative z-10 w-full max-w-2xl mx-auto mt-12">
-        <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
-          <MonitorIcon className="w-8 h-8 text-[var(--color-primary)]" />
+      <div className="relative z-10 w-full max-w-2xl lg:max-w-4xl mx-auto mt-6 lg:mt-12 px-4 lg:px-0">
+        <h1 className="text-2xl lg:text-3xl font-bold mb-6 lg:mb-8 flex items-center gap-2 lg:gap-3">
+          <MonitorIcon className="w-6 h-6 lg:w-8 lg:h-8 text-[var(--color-primary)]" />
           Monitors
         </h1>
-        <div className="space-y-4">
+        <div className="space-y-3 lg:space-y-4">
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="animate-pulse h-20 bg-[var(--color-surface)] bg-opacity-80 rounded-xl"
+              className="animate-pulse h-16 lg:h-20 bg-[var(--color-surface)] bg-opacity-80 rounded-xl"
             />
           ))}
         </div>
@@ -161,16 +163,16 @@ export default function MonitorsPage() {
   const activeMonitors = monitors.filter((m) => m.is_active);
 
   return (
-    <div className="relative z-10 w-full max-w-2xl mx-auto mt-12">
-      <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
-        <MonitorIcon className="w-8 h-8 text-[var(--color-primary)]" />
+    <div className="relative z-10 w-full max-w-2xl lg:max-w-4xl mx-auto mt-6 lg:mt-12 px-4 lg:px-0">
+      <h1 className="text-2xl lg:text-3xl font-bold mb-6 lg:mb-8 flex items-center gap-2 lg:gap-3">
+        <MonitorIcon className="w-6 h-6 lg:w-8 lg:h-8 text-[var(--color-primary)]" />
         Monitors
       </h1>
 
       {/* Add Monitor Form */}
       <form
         onSubmit={handleAddMonitor}
-        className="mb-10 border border-[var(--color-border)] bg-[var(--color-surface)] bg-opacity-80 rounded-xl p-6 flex flex-col gap-4 shadow-lg"
+        className="mb-8 lg:mb-10 border border-[var(--color-border)] bg-[var(--color-surface)] bg-opacity-80 rounded-xl p-4 lg:p-6 flex flex-col gap-3 lg:gap-4 shadow-lg"
       >
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">URL</label>
@@ -179,11 +181,11 @@ export default function MonitorsPage() {
             required
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 py-2 rounded text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]"
+            className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 py-2 rounded text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] text-sm lg:text-base"
             placeholder="https://your-api.com/endpoint"
           />
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
           <div className="flex-1 flex flex-col gap-1">
             <label className="text-sm font-medium">Check Interval (min)</label>
             <input
@@ -192,7 +194,7 @@ export default function MonitorsPage() {
               max={60}
               value={interval}
               onChange={(e) => setInterval(Number(e.target.value))}
-              className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 py-2 rounded text-[var(--color-text-primary)]"
+              className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 py-2 rounded text-[var(--color-text-primary)] text-sm lg:text-base"
             />
           </div>
           <div className="flex-1 flex flex-col gap-1">
@@ -203,14 +205,14 @@ export default function MonitorsPage() {
               max={10}
               value={threshold}
               onChange={(e) => setThreshold(Number(e.target.value))}
-              className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 py-2 rounded text-[var(--color-text-primary)]"
+              className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 py-2 rounded text-[var(--color-text-primary)] text-sm lg:text-base"
             />
           </div>
         </div>
         <button
           type="submit"
           disabled={creating}
-          className="bg-[var(--color-primary)] hover:bg-blue-700 text-[var(--color-text-primary)] px-4 py-2 rounded w-full mt-2 transition-colors font-semibold"
+          className="bg-[var(--color-primary)] hover:bg-blue-700 text-[var(--color-text-primary)] px-4 py-2 lg:py-3 rounded w-full mt-2 transition-colors font-semibold text-sm lg:text-base"
         >
           {creating ? "Adding..." : "Add Monitor"}
         </button>
@@ -222,14 +224,14 @@ export default function MonitorsPage() {
           No active monitors found.
         </p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-3 lg:space-y-4">
           {activeMonitors.map((monitor) => (
             <li
               key={monitor.id}
-              className="relative border border-[var(--color-border)] bg-[var(--color-surface)] bg-opacity-90 p-5 rounded-lg shadow flex flex-col gap-2 transition hover:scale-[1.01] hover:shadow-xl"
+              className="relative border border-[var(--color-border)] bg-[var(--color-surface)] bg-opacity-90 p-4 lg:p-5 rounded-lg shadow flex flex-col gap-2 transition hover:scale-[1.01] hover:shadow-xl"
             >
               <span
-                className={`absolute top-2 right-4 text-sm font-medium flex items-center gap-1 ${
+                className={`absolute top-2 right-3 lg:right-4 text-xs lg:text-sm font-medium flex items-center gap-1 ${
                   monitor.isUp === true
                     ? "text-green-500"
                     : monitor.isUp === false
@@ -253,18 +255,18 @@ export default function MonitorsPage() {
                   ? "Down"
                   : "Unknown"}
               </span>
-              <div className="flex items-center gap-2 text-lg font-mono">
-                <span className="font-semibold text-[var(--color-primary)]">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-2 text-base lg:text-lg font-mono pr-16 lg:pr-20">
+                <span className="font-semibold text-[var(--color-primary)] break-all text-sm lg:text-base">
                   {monitor.url}
                 </span>
                 <button
                   onClick={() => setEditModal({ isOpen: true, monitor })}
-                  className="text-[var(--color-primary)] text-sm border border-[var(--color-border)] px-2 py-1 rounded hover:bg-[var(--color-hover)] transition"
+                  className="text-[var(--color-primary)] text-xs lg:text-sm border border-[var(--color-border)] px-2 py-1 rounded hover:bg-[var(--color-hover)] transition self-start lg:self-auto"
                 >
                   Edit
                 </button>
               </div>
-              <div className="flex items-center gap-4 text-sm mt-1">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 text-xs lg:text-sm mt-1">
                 <span className="text-[var(--color-success)]">🟢 Active</span>
                 <span>Interval: {monitor.interval_minutes} min</span>
                 <span>Threshold: {monitor.alert_threshold}</span>
@@ -272,7 +274,7 @@ export default function MonitorsPage() {
                   onClick={() =>
                     setDeleteModal({ isOpen: true, monitorId: monitor.id })
                   }
-                  className="ml-auto text-[var(--color-danger)] hover:text-[var(--color-hover)] transition flex items-center justify-center h-full hover:scale-110"
+                  className="lg:ml-auto text-[var(--color-danger)] hover:text-[var(--color-hover)] transition flex items-center justify-center h-full hover:scale-110 self-start lg:self-auto"
                 >
                   🗑️
                 </button>
@@ -328,9 +330,9 @@ export default function MonitorsPage() {
 
       {/* Edit Monitor Modal */}
       {editModal.isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-[var(--color-bg)] bg-opacity-50 z-50">
-          <div className="relative bg-[var(--color-surface)] p-6 rounded-xl shadow-lg border border-[var(--color-border)]">
-            <p className="mb-4 text-[var(--color-text-primary)] text-center font-medium">
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-[var(--color-bg)] bg-opacity-50 z-50 p-4">
+          <div className="relative bg-[var(--color-surface)] p-4 lg:p-6 rounded-xl shadow-lg border border-[var(--color-border)] w-full max-w-md lg:max-w-lg">
+            <p className="mb-4 text-[var(--color-text-primary)] text-center font-medium text-sm lg:text-base">
               Edit Monitor Details
             </p>
             <form
@@ -338,7 +340,7 @@ export default function MonitorsPage() {
                 e.preventDefault();
                 handleEditMonitor();
               }}
-              className="flex flex-col gap-6 w-[400px]"
+              className="flex flex-col gap-4 lg:gap-6"
             >
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-[var(--color-text-primary)]">
@@ -353,7 +355,7 @@ export default function MonitorsPage() {
                       monitor: { ...prev.monitor, url: e.target.value },
                     }))
                   }
-                  className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-4 py-3 rounded text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]"
+                  className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 lg:px-4 py-2 lg:py-3 rounded text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] text-sm lg:text-base"
                   placeholder="URL"
                 />
               </div>
@@ -372,7 +374,7 @@ export default function MonitorsPage() {
                       monitor: { ...prev.monitor, interval_minutes: Number(e.target.value) },
                     }))
                   }
-                  className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-4 py-3 rounded text-[var(--color-text-primary)]"
+                  className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 lg:px-4 py-2 lg:py-3 rounded text-[var(--color-text-primary)] text-sm lg:text-base"
                   placeholder="Interval (minutes)"
                 />
               </div>
@@ -391,21 +393,21 @@ export default function MonitorsPage() {
                       monitor: { ...prev.monitor, alert_threshold: Number(e.target.value) },
                     }))
                   }
-                  className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-4 py-3 rounded text-[var(--color-text-primary)]"
+                  className="border border-[var(--color-border)] bg-[var(--color-bg)] bg-opacity-80 px-3 lg:px-4 py-2 lg:py-3 rounded text-[var(--color-text-primary)] text-sm lg:text-base"
                   placeholder="Alert Threshold"
                 />
               </div>
-              <div className="flex justify-center gap-6 mt-4">
+              <div className="flex flex-col lg:flex-row justify-center gap-3 lg:gap-6 mt-4">
                 <button
                   type="button"
                   onClick={() => setEditModal({ isOpen: false, monitor: null })}
-                  className="px-6 py-3 bg-[var(--color-bg)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded hover:bg-[var(--color-hover)] transition"
+                  className="px-4 lg:px-6 py-2 lg:py-3 bg-[var(--color-bg)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded hover:bg-[var(--color-hover)] transition text-sm lg:text-base"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-[var(--color-primary)] text-white rounded hover:bg-blue-600 transition"
+                  className="px-4 lg:px-6 py-2 lg:py-3 bg-[var(--color-primary)] text-white rounded hover:bg-blue-600 transition text-sm lg:text-base"
                 >
                   Save
                 </button>

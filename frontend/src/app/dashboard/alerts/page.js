@@ -5,6 +5,8 @@ import useAuthToken from "@/hooks/useAuthToken";
 import { MonitorIcon, Search, ChevronDown, ChevronUp, Filter } from "lucide-react";
 import AlertDetailsModal from "./AlertDetailsModal";
 
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app'}/api`;
+
 export default function AlertsPage() {
   const { token, loading } = useAuthToken();
   const [alerts, setAlerts] = useState([]);
@@ -20,7 +22,7 @@ export default function AlertsPage() {
     async function fetchAlerts() {
       setIsLoading(true);
       try {
-        const res = await fetch("http://localhost:5000/api/monitor/alerts", {
+        const res = await fetch(`${API_URL}/monitor/alerts`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
@@ -64,21 +66,21 @@ export default function AlertsPage() {
     });
 
   return (
-    <div className="relative z-10 w-full max-w-2xl mx-auto mt-12">
-      <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
-        <MonitorIcon className="w-8 h-8 text-[var(--color-primary)]" />
+    <div className="relative z-10 w-full max-w-2xl lg:max-w-4xl mx-auto mt-6 lg:mt-12 px-4 lg:px-0">
+      <h1 className="text-2xl lg:text-3xl font-bold mb-6 lg:mb-8 flex items-center gap-2 lg:gap-3">
+        <MonitorIcon className="w-6 h-6 lg:w-8 lg:h-8 text-[var(--color-primary)]" />
         Alerts
       </h1>
       {/* Search & Filter Bar */}
-      <div className="flex flex-wrap gap-2 mb-6 items-center">
-        <div className="flex items-center gap-2 bg-[var(--color-surface)] rounded px-2 py-1">
+      <div className="flex flex-col lg:flex-row lg:flex-wrap gap-3 lg:gap-2 mb-4 lg:mb-6 items-stretch lg:items-center">
+        <div className="flex items-center gap-2 bg-[var(--color-surface)] rounded px-2 py-1 flex-1 lg:flex-none">
           <Search className="w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Search alerts..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="bg-transparent outline-none text-sm px-1"
+            className="bg-transparent outline-none text-sm px-1 flex-1"
             aria-label="Search alerts"
           />
         </div>
@@ -87,7 +89,7 @@ export default function AlertsPage() {
           <select
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
-            className="bg-transparent outline-none text-sm text-[var(--color-text-primary)] appearance-none focus:ring-2 focus:ring-[var(--color-primary)] border border-[var(--color-border)] rounded"
+            className="bg-transparent outline-none text-sm text-[var(--color-text-primary)] appearance-none focus:ring-2 focus:ring-[var(--color-primary)] border border-[var(--color-border)] rounded px-2 py-1"
             aria-label="Filter by status"
             style={{ background: 'rgba(30,41,59,0.7)' }}
           >

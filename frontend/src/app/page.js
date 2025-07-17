@@ -50,20 +50,20 @@ export default function Home() {
 
       {/* Navigation */}
       <nav className="relative z-20 backdrop-blur-md bg-[#0f0f10]/60 border-b border-[#232329]/50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-[#232329]/40 to-[#18181b]/40 backdrop-blur-sm rounded-xl border border-[#232329]/60">
-              <Eye className="w-8 h-8 text-[#9ca3af]" />
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-[#232329]/40 to-[#18181b]/40 backdrop-blur-sm rounded-xl border border-[#232329]/60">
+              <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-[#9ca3af]" />
             </div>
-            <span className="text-2xl font-bold text-[#f9fafb]">
+            <span className="text-xl sm:text-2xl font-bold text-[#f9fafb]">
               AP-EYE
             </span>
           </div>
-          <div className="flex items-center space-x-4">
-            <Link href="/login" className="px-4 py-2 text-[#9ca3af] hover:text-[#f9fafb] transition-colors">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <Link href="/login" className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base text-[#9ca3af] hover:text-[#f9fafb] transition-colors">
               Sign In
             </Link>
-            <Link href="/register" className="px-6 py-2 bg-[#232329]/30 backdrop-blur-sm border border-[#232329] rounded-full hover:bg-[#232329]/50 transition-all text-[#f9fafb]">
+            <Link href="/register" className="px-4 py-1.5 sm:px-6 sm:py-2 text-sm sm:text-base bg-[#232329]/30 backdrop-blur-sm border border-[#232329] rounded-full hover:bg-[#232329]/50 transition-all text-[#f9fafb]">
               Get Started
             </Link>
           </div>
@@ -71,12 +71,12 @@ export default function Home() {
       </nav>
 
       {/* Main Hero Section - Centered "Eye for API" */}
-      <section className="relative min-h-screen flex items-center justify-center px-6">
+      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6">
         <div className="max-w-7xl mx-auto w-full text-center">
           <div className="relative">
             <SplitText
               text="Eye for API"
-              className="text-6xl md:text-8xl lg:text-[8rem] font-black text-[#f9fafb] leading-tight"
+              className="text-4xl sm:text-6xl md:text-8xl lg:text-[8rem] font-black text-[#f9fafb] leading-tight"
               splitType="chars"
               delay={50}
               duration={0.8}
@@ -85,8 +85,8 @@ export default function Home() {
               ease="back.out(1.7)"
               threshold={0.3}
             />
-            <div className="mt-8 opacity-70">
-              <p className="text-lg md:text-xl text-slate-400 font-light">
+            <div className="mt-6 sm:mt-8 opacity-70">
+              <p className="text-base sm:text-lg md:text-xl text-slate-400 font-light px-4 sm:px-0">
                 Real-time API monitoring that actually works
               </p>
             </div>
@@ -224,15 +224,15 @@ export default function Home() {
       </section>
 
       {/* CardSwap Demo Section - Big Cards */}
-      <section className="relative z-10 py-32 px-6">
+      <section className="relative z-10 py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <ScrollReveal enableBlur={true} baseOpacity={0} baseRotation={5} blurStrength={12}>
-            <div className="text-left mb-20 max-w-4xl">
-              <h2 className="text-5xl md:text-7xl font-black mb-6">
+            <div className="text-left mb-12 sm:mb-16 lg:mb-20 max-w-4xl">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black mb-4 sm:mb-6">
                 <span className="text-[#9ca3af]">See it in</span>
                 <span className="text-[#f9fafb]"> Action</span>
               </h2>
-              <p className="text-xl text-[#9ca3af] max-w-2xl">
+              <p className="text-lg sm:text-xl text-[#9ca3af] max-w-2xl">
                 Watch AP-EYE monitor your APIs in real-time
               </p>
             </div>
@@ -240,110 +240,112 @@ export default function Home() {
 
           {/* Big CardSwap */}
           <div className="flex justify-center">
-            <CardSwap
-              cardDistance={100}
-              verticalDistance={120}
-              delay={4000}
-              pauseOnHover={true}
-              width={550}
-              height={400}
-            >
-              <Card className="bg-gradient-to-br from-[#18181b]/80 to-[#27272a]/80 backdrop-blur-xl border border-[#232329] p-10">
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="p-4 bg-emerald-900/30 rounded-xl border border-emerald-800/50">
-                    <Monitor className="w-8 h-8 text-emerald-400" />
+            <div className="w-full max-w-[280px] sm:max-w-[350px] md:max-w-[450px] lg:max-w-[550px]">
+              <CardSwap
+                cardDistance={30}
+                verticalDistance={50}
+                delay={4000}
+                pauseOnHover={true}
+                width="100%"
+                height={200}
+              >
+              <Card className="bg-gradient-to-br from-[#18181b]/80 to-[#27272a]/80 backdrop-blur-xl border border-[#232329] p-4 sm:p-6 lg:p-10">
+                <div className="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6 lg:mb-8">
+                  <div className="p-2 sm:p-3 lg:p-4 bg-emerald-900/30 rounded-xl border border-emerald-800/50">
+                    <Monitor className="w-4 h-4 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-emerald-400" />
                   </div>
                   <div>
-                    <h3 className="text-3xl font-bold text-[#f9fafb]">Real-time Monitoring</h3>
-                    <p className="text-[#9ca3af] text-lg">Never miss a beat</p>
+                    <h3 className="text-lg sm:text-xl lg:text-3xl font-bold text-[#f9fafb]">Real-time Monitoring</h3>
+                    <p className="text-[#9ca3af] text-sm sm:text-base lg:text-lg">Never miss a beat</p>
                   </div>
                 </div>
-                <div className="space-y-6">
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                   <div className="flex justify-between items-center">
-                    <span className="text-[#9ca3af] text-lg">Response Time</span>
-                    <span className="text-emerald-400 font-bold text-2xl">142ms</span>
+                    <span className="text-[#9ca3af] text-sm sm:text-base lg:text-lg">Response Time</span>
+                    <span className="text-emerald-400 font-bold text-lg sm:text-xl lg:text-2xl">142ms</span>
                   </div>
-                  <div className="w-full bg-[#232329] rounded-full h-4 border border-[#232329]">
-                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-4 rounded-full w-4/5 shadow-lg shadow-emerald-400/20"></div>
+                  <div className="w-full bg-[#232329] rounded-full h-2 sm:h-3 lg:h-4 border border-[#232329]">
+                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-2 sm:h-3 lg:h-4 rounded-full w-4/5 shadow-lg shadow-emerald-400/20"></div>
                   </div>
-                  <div className="grid grid-cols-3 gap-6 mt-8">
-                    <div className="text-center p-4 bg-[#232329]/50 rounded-lg border border-[#232329]">
-                      <div className="text-emerald-400 font-bold text-2xl">99.9%</div>
-                      <div className="text-sm text-[#9ca3af]">Uptime</div>
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:gap-6 mt-4 sm:mt-6 lg:mt-8">
+                    <div className="text-center p-2 sm:p-3 lg:p-4 bg-[#232329]/50 rounded-lg border border-[#232329]">
+                      <div className="text-emerald-400 font-bold text-lg sm:text-xl lg:text-2xl">99.9%</div>
+                      <div className="text-xs sm:text-sm text-[#9ca3af]">Uptime</div>
                     </div>
-                    <div className="text-center p-4 bg-[#232329]/50 rounded-lg border border-[#232329]">
-                      <div className="text-[#9ca3af] font-bold text-2xl">2.4M</div>
-                      <div className="text-sm text-[#9ca3af]">Requests</div>
+                    <div className="text-center p-2 sm:p-3 lg:p-4 bg-[#232329]/50 rounded-lg border border-[#232329]">
+                      <div className="text-[#9ca3af] font-bold text-lg sm:text-xl lg:text-2xl">2.4M</div>
+                      <div className="text-xs sm:text-sm text-[#9ca3af]">Requests</div>
                     </div>
-                    <div className="text-center p-4 bg-[#232329]/50 rounded-lg border border-[#232329]">
-                      <div className="text-slate-400 font-bold text-2xl">24/7</div>
-                      <div className="text-sm text-slate-500">Active</div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-[#18181b]/80 to-[#27272a]/80 backdrop-blur-xl border border-[#232329] p-10">
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="p-4 bg-violet-900/30 rounded-xl border border-violet-800/50">
-                    <BarChart3 className="w-8 h-8 text-violet-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-3xl font-bold text-slate-200">Smart Analytics</h3>
-                    <p className="text-slate-400 text-lg">Deep insights at a glance</p>
-                  </div>
-                </div>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="p-6 bg-[#232329]/50 rounded-lg border border-[#232329]">
-                      <div className="text-4xl font-bold text-violet-400 mb-2">847K</div>
-                      <div className="text-slate-500">Today&apos;s Requests</div>
-                    </div>
-                    <div className="p-6 bg-[#232329]/50 rounded-lg border border-[#232329]">
-                      <div className="text-4xl font-bold text-slate-400 mb-2">99.2%</div>
-                      <div className="text-slate-500">Success Rate</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-[#232329]/30 rounded-lg">
-                    <span className="text-slate-400 text-lg">Peak Traffic Window</span>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse"></div>
-                      <span className="text-amber-400 font-semibold text-lg">3:42 PM</span>
+                    <div className="text-center p-2 sm:p-3 lg:p-4 bg-[#232329]/50 rounded-lg border border-[#232329]">
+                      <div className="text-slate-400 font-bold text-lg sm:text-xl lg:text-2xl">24/7</div>
+                      <div className="text-xs sm:text-sm text-slate-500">Active</div>
                     </div>
                   </div>
                 </div>
               </Card>
 
-              <Card className="bg-gradient-to-br from-[#18181b]/80 to-[#27272a]/80 backdrop-blur-xl border border-[#232329] p-10">
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="p-4 bg-red-900/30 rounded-xl border border-red-800/50">
-                    <AlertTriangle className="w-8 h-8 text-red-400" />
+              <Card className="bg-gradient-to-br from-[#18181b]/80 to-[#27272a]/80 backdrop-blur-xl border border-[#232329] p-4 sm:p-6 lg:p-10">
+                <div className="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6 lg:mb-8">
+                  <div className="p-2 sm:p-3 lg:p-4 bg-violet-900/30 rounded-xl border border-violet-800/50">
+                    <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-violet-400" />
                   </div>
                   <div>
-                    <h3 className="text-3xl font-bold text-[#f9fafb]">Instant Alerts</h3>
-                    <p className="text-[#9ca3af] text-lg">Never miss an issue</p>
+                    <h3 className="text-lg sm:text-xl lg:text-3xl font-bold text-slate-200">Smart Analytics</h3>
+                    <p className="text-slate-400 text-sm sm:text-base lg:text-lg">Deep insights at a glance</p>
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4 p-4 bg-emerald-900/20 border border-emerald-800/30 rounded-lg">
-                    <div className="w-4 h-4 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <span className="text-emerald-300">All systems operational</span>
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:gap-6">
+                    <div className="p-3 sm:p-4 lg:p-6 bg-[#232329]/50 rounded-lg border border-[#232329]">
+                      <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-violet-400 mb-1 sm:mb-2">847K</div>
+                      <div className="text-slate-500 text-xs sm:text-sm lg:text-base">Today&apos;s Requests</div>
+                    </div>
+                    <div className="p-3 sm:p-4 lg:p-6 bg-[#232329]/50 rounded-lg border border-[#232329]">
+                      <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-400 mb-1 sm:mb-2">99.2%</div>
+                      <div className="text-slate-500 text-xs sm:text-sm lg:text-base">Success Rate</div>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-4 p-4 bg-amber-900/20 border border-amber-800/30 rounded-lg">
-                    <div className="w-4 h-4 bg-amber-400 rounded-full"></div>
-                    <span className="text-amber-300">2 warnings resolved today</span>
+                  <div className="flex items-center justify-between p-3 sm:p-4 bg-[#232329]/30 rounded-lg">
+                    <span className="text-slate-400 text-sm sm:text-base lg:text-lg">Peak Traffic Window</span>
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <div className="w-2 h-2 sm:w-3 sm:h-3 bg-amber-400 rounded-full animate-pulse"></div>
+                      <span className="text-amber-400 font-semibold text-sm sm:text-base lg:text-lg">3:42 PM</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-4 p-4 bg-[#232329]/20 border border-[#232329]/30 rounded-lg">
-                    <div className="w-4 h-4 bg-[#9ca3af] rounded-full"></div>
-                    <span className="text-[#9ca3af]">Monitoring 47 endpoints</span>
+                </div>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-[#18181b]/80 to-[#27272a]/80 backdrop-blur-xl border border-[#232329] p-4 sm:p-6 lg:p-10">
+                <div className="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6 lg:mb-8">
+                  <div className="p-2 sm:p-3 lg:p-4 bg-red-900/30 rounded-xl border border-red-800/50">
+                    <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-red-400" />
                   </div>
-                  <div className="flex items-center space-x-4 p-4 bg-[#232329]/20 border border-[#232329]/30 rounded-lg">
-                    <div className="w-4 h-4 bg-[#9ca3af] rounded-full"></div>
-                    <span className="text-[#9ca3af]">Average response: 98ms</span>
+                  <div>
+                    <h3 className="text-lg sm:text-xl lg:text-3xl font-bold text-[#f9fafb]">Instant Alerts</h3>
+                    <p className="text-[#9ca3af] text-sm sm:text-base lg:text-lg">Never miss an issue</p>
+                  </div>
+                </div>
+                <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+                  <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 p-2 sm:p-3 lg:p-4 bg-emerald-900/20 border border-emerald-800/30 rounded-lg">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <span className="text-emerald-300 text-xs sm:text-sm lg:text-base">All systems operational</span>
+                  </div>
+                  <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 p-2 sm:p-3 lg:p-4 bg-amber-900/20 border border-amber-800/30 rounded-lg">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-amber-400 rounded-full"></div>
+                    <span className="text-amber-300 text-xs sm:text-sm lg:text-base">2 warnings resolved today</span>
+                  </div>
+                  <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 p-2 sm:p-3 lg:p-4 bg-[#232329]/20 border border-[#232329]/30 rounded-lg">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-[#9ca3af] rounded-full"></div>
+                    <span className="text-[#9ca3af] text-xs sm:text-sm lg:text-base">Monitoring 47 endpoints</span>
+                  </div>
+                  <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 p-2 sm:p-3 lg:p-4 bg-[#232329]/20 border border-[#232329]/30 rounded-lg">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-[#9ca3af] rounded-full"></div>
+                    <span className="text-[#9ca3af] text-xs sm:text-sm lg:text-base">Average response: 98ms</span>
                   </div>
                 </div>
               </Card>
             </CardSwap>
+            </div>
           </div>
         </div>
       </section>

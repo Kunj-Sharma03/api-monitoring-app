@@ -21,6 +21,8 @@ import {
   ArrowDownRight
 } from 'lucide-react';
 
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app'}/api`;
+
 export default function AnalyticsPage() {
   const { token } = useAuthToken();
   const { monitors, isLoading } = useMonitorsSWR();
@@ -49,19 +51,19 @@ export default function AnalyticsPage() {
         console.log('Fetching analytics data for range:', timeRange);
         
         const [overviewRes, monitorStatsRes, uptimeRes, responseRes, alertsRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/analytics/overview?range=${timeRange}`, {
+          fetch(`${API_URL}/analytics/overview?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`http://localhost:5000/api/analytics/monitor-stats?range=${timeRange}`, {
+          fetch(`${API_URL}/analytics/monitor-stats?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`http://localhost:5000/api/analytics/uptime-history?range=${timeRange}`, {
+          fetch(`${API_URL}/analytics/uptime-history?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`http://localhost:5000/api/analytics/response-time?range=${timeRange}`, {
+          fetch(`${API_URL}/analytics/response-time?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`http://localhost:5000/api/analytics/alerts-history?range=${timeRange}`, {
+          fetch(`${API_URL}/analytics/alerts-history?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
@@ -109,17 +111,17 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)]">
-      <main className="flex-1 px-8 py-10 max-w-7xl mx-auto">
+      <main className="flex-1 px-4 lg:px-8 py-6 lg:py-10 max-w-7xl mx-auto">
         {/* Header */}
         <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <BarChart3 className="w-8 h-8 text-[var(--color-primary)]" />
-              <h1 className="text-4xl font-bold text-[var(--color-text-primary)]">
+          <div className="mb-8 lg:mb-12">
+            <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-4">
+              <BarChart3 className="w-6 h-6 lg:w-8 lg:h-8 text-[var(--color-primary)]" />
+              <h1 className="text-2xl lg:text-4xl font-bold text-[var(--color-text-primary)]">
                 Analytics Dashboard
               </h1>
             </div>
-            <p className="text-lg text-[var(--color-text-secondary)] max-w-2xl">
+            <p className="text-base lg:text-lg text-[var(--color-text-secondary)] max-w-2xl">
               Comprehensive monitoring insights, performance metrics, and detailed analytics for all your endpoints.
             </p>
           </div>
@@ -127,16 +129,16 @@ export default function AnalyticsPage() {
 
         {/* Filters */}
         <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
-          <div className="mb-8 bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 shadow-lg">
-            <div className="flex flex-wrap items-center gap-6">
+          <div className="mb-6 lg:mb-8 bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-4 lg:p-6 shadow-lg">
+            <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-4 lg:gap-6">
               {/* Time Range Selector */}
               <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                <Calendar className="w-4 h-4 lg:w-5 lg:h-5 text-[var(--color-text-secondary)]" />
                 <span className="text-sm font-medium text-[var(--color-text-primary)]">Time Range:</span>
                 <select
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
-                  className="bg-[var(--color-bg)] bg-opacity-80 border border-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                  className="bg-[var(--color-bg)] bg-opacity-80 border border-[var(--color-border)] text-[var(--color-text-primary)] px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 >
                   <option value="24h">Last 24 Hours</option>
                   <option value="7d">Last 7 Days</option>
@@ -147,7 +149,7 @@ export default function AnalyticsPage() {
 
               {/* Monitor Selector */}
               <div className="flex items-center gap-3">
-                <Filter className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                <Filter className="w-4 h-4 lg:w-5 lg:h-5 text-[var(--color-text-secondary)]" />
                 <span className="text-sm font-medium text-[var(--color-text-primary)]">Monitor:</span>
                 <select
                   value={selectedMonitor}
