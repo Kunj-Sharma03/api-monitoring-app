@@ -77,11 +77,11 @@ export default function AnalyticsPage() {
         });
 
         const [overview, monitorStats, uptimeHistory, responseTime, alertsHistory] = await Promise.all([
-          overviewRes.ok ? overviewRes.json() : null,
-          monitorStatsRes.ok ? monitorStatsRes.json() : [],
-          uptimeRes.ok ? uptimeRes.json() : { data: [] },
-          responseRes.ok ? responseRes.json() : { data: [] },
-          alertsRes.ok ? alertsRes.json() : { data: [] }
+          overviewRes.ok ? overviewRes.json().catch(e => { console.error('Overview JSON parse error:', e); return null; }) : null,
+          monitorStatsRes.ok ? monitorStatsRes.json().catch(e => { console.error('MonitorStats JSON parse error:', e); return []; }) : [],
+          uptimeRes.ok ? uptimeRes.json().catch(e => { console.error('Uptime JSON parse error:', e); return { data: [] }; }) : { data: [] },
+          responseRes.ok ? responseRes.json().catch(e => { console.error('Response JSON parse error:', e); return { data: [] }; }) : { data: [] },
+          alertsRes.ok ? alertsRes.json().catch(e => { console.error('Alerts JSON parse error:', e); return { data: [] }; }) : { data: [] }
         ]);
 
         console.log('Parsed analytics data:', {
@@ -94,15 +94,22 @@ export default function AnalyticsPage() {
 
         setAnalytics({
           overview,
-          monitorStats: monitorStats || [],
-          uptimeHistory: uptimeHistory.data || [],
-          responseTime: responseTime.data || [],
-          alertsHistory: alertsHistory.data || [],
+          monitorStats: Array.isArray(monitorStats) ? monitorStats : [],
+          uptimeHistory: Array.isArray(uptimeHistory.data) ? uptimeHistory.data : [],
+          responseTime: Array.isArray(responseTime.data) ? responseTime.data : [],
+          alertsHistory: Array.isArray(alertsHistory.data) ? alertsHistory.data : [],
           loading: false
         });
       } catch (error) {
         console.error('Failed to fetch analytics:', error);
-        setAnalytics(prev => ({ ...prev, loading: false }));
+        setAnalytics(prev => ({ 
+          ...prev, 
+          loading: false,
+          monitorStats: [],
+          uptimeHistory: [],
+          responseTime: [],
+          alertsHistory: []
+        }));
       }
     };
 
@@ -111,7 +118,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)]">
-      <main className="flex-1 px-4 lg:px-8 py-6 lg:py-10 max-w-7xl mx-auto">
+      <main className="flex-1 px-4 lg:px-8 py-6 lg:py-10 pt-16 md:pt-6 max-w-7xl mx-auto">
         {/* Header */}
         <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
           <div className="mb-8 lg:mb-12">
@@ -318,12 +325,24 @@ export default function AnalyticsPage() {
                   className="w-full h-[300px]"
                   height={300}
                   data={{
-                    labels: analytics.uptimeHistory.map(item => 
-                      new Date(item.time_bucket).toLocaleDateString()
-                    ),
+                    labels: analytics.uptimeHistory.map(item => {
+                      try {
+                        return new Date(item.time_bucket).toLocaleDateString();
+                      } catch (e) {
+                        console.error('Date parsing error:', e, item);
+                        return 'Invalid Date';
+                      }
+                    }),
                     datasets: [{
                       label: 'Uptime %',
-                      data: analytics.uptimeHistory.map(item => item.uptime_percent),
+                      data: analytics.uptimeHistory.map(item => {
+                        try {
+                          return typeof item.uptime_percent === 'number' ? item.uptime_percent : parseFloat(item.uptime_percent) || 0;
+                        } catch (e) {
+                          console.error('Data parsing error:', e, item);
+                          return 0;
+                        }
+                      }),
                       borderColor: 'rgba(34, 197, 94, 1)',
                       backgroundColor: 'rgba(34, 197, 94, 0.1)',
                       borderWidth: 3,
@@ -387,12 +406,24 @@ export default function AnalyticsPage() {
                   className="w-full h-[300px]"
                   height={300}
                   data={{
-                    labels: analytics.responseTime.map(item => 
-                      new Date(item.time_bucket).toLocaleDateString()
-                    ),
+                    labels: analytics.responseTime.map(item => {
+                      try {
+                        return new Date(item.time_bucket).toLocaleDateString();
+                      } catch (e) {
+                        console.error('Date parsing error:', e, item);
+                        return 'Invalid Date';
+                      }
+                    }),
                     datasets: [{
                       label: 'Response Time (ms)',
-                      data: analytics.responseTime.map(item => item.avg_response_time),
+                      data: analytics.responseTime.map(item => {
+                        try {
+                          return typeof item.avg_response_time === 'number' ? item.avg_response_time : parseFloat(item.avg_response_time) || 0;
+                        } catch (e) {
+                          console.error('Data parsing error:', e, item);
+                          return 0;
+                        }
+                      }),
                       borderColor: 'rgba(59, 130, 246, 1)',
                       backgroundColor: 'rgba(59, 130, 246, 0.1)',
                       borderWidth: 3,
@@ -457,12 +488,24 @@ export default function AnalyticsPage() {
                 className="w-full h-[300px]"
                 height={300}
                 data={{
-                  labels: analytics.alertsHistory.map(item => 
-                    new Date(item.time_bucket).toLocaleDateString()
-                  ),
+                  labels: analytics.alertsHistory.map(item => {
+                    try {
+                      return new Date(item.time_bucket).toLocaleDateString();
+                    } catch (e) {
+                      console.error('Date parsing error:', e, item);
+                      return 'Invalid Date';
+                    }
+                  }),
                   datasets: [{
                     label: 'Alerts',
-                    data: analytics.alertsHistory.map(item => item.alert_count),
+                    data: analytics.alertsHistory.map(item => {
+                      try {
+                        return typeof item.alert_count === 'number' ? item.alert_count : parseInt(item.alert_count) || 0;
+                      } catch (e) {
+                        console.error('Data parsing error:', e, item);
+                        return 0;
+                      }
+                    }),
                     backgroundColor: 'rgba(239, 68, 68, 0.7)',
                     borderColor: 'rgba(239, 68, 68, 1)',
                     borderWidth: 2,

@@ -99,7 +99,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)]">
-      <main className="flex-1 px-8 py-10 bg-[var(--color-bg)] bg-opacity-80 min-h-screen">
+      <main className="flex-1 px-4 md:px-8 py-6 md:py-10 pt-16 md:pt-10 bg-[var(--color-bg)] bg-opacity-80 min-h-screen">
         {/* Hero Section - Always Visible */}
         <div className="relative flex flex-col items-center justify-center w-full min-h-screen">
           {/* Logout button top right */}

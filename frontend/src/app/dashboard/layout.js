@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,7 +47,7 @@ export default function Layout({ children }) {
         {/* Sidebar */}
         <Sidebar
           collapsible="icon"
-          className="hidden md:flex bg-[var(--color-surface)] bg-opacity-90 backdrop-blur-sm border-r border-[var(--color-border)]"
+          className="bg-[var(--color-surface)] bg-opacity-90 backdrop-blur-sm border-r border-[var(--color-border)]"
         >
           <SidebarContent className="flex flex-col h-full">
             {/* Logo */}
@@ -172,6 +173,10 @@ export default function Layout({ children }) {
 
         {/* Main content slot */}
         <main className="flex-1 min-h-screen bg-[var(--color-bg)] bg-opacity-80 text-[var(--color-text-primary)]">
+          {/* Mobile menu trigger */}
+          <div className="md:hidden fixed top-4 left-4 z-50">
+            <SidebarTrigger className="bg-[var(--color-surface)] bg-opacity-90 backdrop-blur-sm border border-[var(--color-border)] rounded-md p-2 text-[var(--color-text-primary)] hover:bg-[var(--color-hover)]" />
+          </div>
           {children}
         </main>
       </div>
