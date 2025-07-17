@@ -34,7 +34,7 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full bg-[var(--color-bg)] bg-opacity-80">
+    <div className="dashboard-container relative flex min-h-screen w-full bg-[var(--color-bg)] bg-opacity-80">
       {/* Silk background - Fixed for mobile */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Silk

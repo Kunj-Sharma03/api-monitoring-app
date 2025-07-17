@@ -154,7 +154,7 @@ export default function Home() {
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-black mb-4">
                 <span className="text-[#9ca3af]">Why choose</span>
-                <span className="text-[#f9fafb]"> AP-EYE?</span>
+                <span className="text-[#f9fafb] whitespace-nowrap"> AP-EYE?</span>
               </h2>
             </div>
           </ScrollReveal>
@@ -226,29 +226,34 @@ export default function Home() {
       {/* CardSwap Demo Section - Big Cards */}
       <section className="relative z-10 py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <ScrollReveal enableBlur={true} baseOpacity={0} baseRotation={5} blurStrength={12}>
-            <div className="text-left mb-12 sm:mb-16 lg:mb-20 max-w-4xl">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black mb-4 sm:mb-6">
-                <span className="text-[#9ca3af]">See it in</span>
-                <span className="text-[#f9fafb]"> Action</span>
-              </h2>
-              <p className="text-lg sm:text-xl text-[#9ca3af] max-w-2xl">
-                Watch AP-EYE monitor your APIs in real-time
-              </p>
+          {/* Container for both text and CardSwap */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-16">
+            {/* Text Content */}
+            <div className="flex-1 lg:max-w-2xl">
+              <ScrollReveal enableBlur={true} baseOpacity={0} baseRotation={5} blurStrength={12}>
+                <div className="text-left mb-8 lg:mb-0">
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-4 sm:mb-6">
+                    <span className="text-[#9ca3af]">See it in</span>
+                    <span className="text-[#f9fafb]"> Action</span>
+                  </h2>
+                  <p className="text-lg sm:text-xl text-[#9ca3af] max-w-xl">
+                    Watch AP-EYE monitor your APIs in real-time
+                  </p>
+                </div>
+              </ScrollReveal>
             </div>
-          </ScrollReveal>
 
-          {/* Big CardSwap */}
-          <div className="flex justify-center">
-            <div className="w-full max-w-[280px] sm:max-w-[350px] md:max-w-[450px] lg:max-w-[550px]">
-              <CardSwap
-                cardDistance={30}
-                verticalDistance={50}
-                delay={4000}
-                pauseOnHover={true}
-                width="100%"
-                height={200}
-              >
+            {/* CardSwap Container */}
+            <div className="flex-1 flex justify-center lg:justify-end">
+              <div className="w-full max-w-[280px] sm:max-w-[350px] md:max-w-[450px] lg:max-w-[500px] xl:max-w-[550px]">
+                <CardSwap
+                  cardDistance={30}
+                  verticalDistance={50}
+                  delay={4000}
+                  pauseOnHover={true}
+                  width="100%"
+                  height={200}
+                >
               <Card className="bg-gradient-to-br from-[#18181b]/80 to-[#27272a]/80 backdrop-blur-xl border border-[#232329] p-4 sm:p-6 lg:p-10">
                 <div className="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6 lg:mb-8">
                   <div className="p-2 sm:p-3 lg:p-4 bg-emerald-900/30 rounded-xl border border-emerald-800/50">
@@ -345,6 +350,7 @@ export default function Home() {
                 </div>
               </Card>
             </CardSwap>
+              </div>
             </div>
           </div>
         </div>
