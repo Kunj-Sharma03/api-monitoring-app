@@ -94,7 +94,9 @@ export default function LoginPage() {
               type="button"
               className="bg-white/10 hover:bg-white/20 p-3 rounded-full border border-white/20 transition-all"
               onClick={() => {
-                window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app';
+                console.log('API URL:', apiUrl);
+                window.location.href = `${apiUrl}/api/auth/google`;
               }}
               aria-label="Sign in with Google"
             >

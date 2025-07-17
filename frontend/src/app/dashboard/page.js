@@ -35,17 +35,18 @@ export default function Dashboard() {
       try {
         console.log('Fetching analytics data for range:', timeRange);
         
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app';
         const [overviewRes, uptimeRes, responseRes, alertsRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/overview?range=${timeRange}`, {
+          fetch(`${apiUrl}/api/analytics/overview?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/uptime-history?range=${timeRange}`, {
+          fetch(`${apiUrl}/api/analytics/uptime-history?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/response-time?range=${timeRange}`, {
+          fetch(`${apiUrl}/api/analytics/response-time?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/alerts-history?range=${timeRange}`, {
+          fetch(`${apiUrl}/api/analytics/alerts-history?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
