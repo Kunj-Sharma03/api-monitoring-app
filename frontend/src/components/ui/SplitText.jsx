@@ -24,9 +24,10 @@ const SplitText = ({
   const ref = useRef(null);
   const animationCompletedRef = useRef(false);
   const scrollTriggerRef = useRef(null);
+  const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !ref.current || !text) return;
+    if (typeof window === "undefined" || !ref.current || !text || hasAnimatedRef.current) return;
 
     const el = ref.current;
     animationCompletedRef.current = false;
@@ -91,6 +92,7 @@ const SplitText = ({
       smoothChildTiming: true,
       onComplete: () => {
         animationCompletedRef.current = true;
+        hasAnimatedRef.current = true;
         gsap.set(targets, {
           ...to,
           clearProps: "willChange",
@@ -126,8 +128,8 @@ const SplitText = ({
     duration,
     ease,
     splitType,
-    from,
-    to,
+    JSON.stringify(from),
+    JSON.stringify(to),
     threshold,
     rootMargin,
     onLetterAnimationComplete,

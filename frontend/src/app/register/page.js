@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import Particles from '@/components/background/Particles';
 
-// This component handles user registration with both email/password and Google OAuth options
+
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -54,6 +56,12 @@ export default function RegisterPage() {
 
   return (
     <div className="relative h-screen w-full flex items-center justify-center bg-black overflow-hidden">
+      {/* Back to Home Button */}
+      <Link href="/" className="absolute top-6 left-6 z-20 flex items-center space-x-2 text-white/70 hover:text-white transition-colors group">
+        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+        <span className="text-sm font-medium">Back to Home</span>
+      </Link>
+
       <div className="absolute inset-0 w-full h-full">
         <Particles
           particleColors={["#ffffff", "#ffffff"]}
