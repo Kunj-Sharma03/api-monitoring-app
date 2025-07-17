@@ -4,9 +4,17 @@ const sendEmail = require('../utils/sendEmail');
 const generateAlertPDF = require('../utils/generateAlertPDF');
 const fs = require('fs');
 const os = require('os');
-const pLimit = require('p-limit').default;
 
-const limit = pLimit(2);
+// Use dynamic import for p-limit since it's an ES module
+let pLimit;
+const initPLimit = async () => {
+  if (!pLimit) {
+    const module = await import('p-limit');
+    pLimit = module.default;
+  }
+  return pLimit;
+};
+
 const COOLDOWN_MINUTES = 30;
 
 function isCooldownActive(lastSent) {
@@ -56,6 +64,10 @@ See attached report for more details.
 
 async function checkMonitors() {
   try {
+    // Initialize pLimit if not already done
+    const limitFunc = await initPLimit();
+    const limit = limitFunc(2);
+
     const { rows: monitors } = await safeQuery(
       `SELECT * FROM monitors WHERE is_active = true`
     );
