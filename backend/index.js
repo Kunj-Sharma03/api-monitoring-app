@@ -37,6 +37,10 @@ const validateEnv = require('./utils/validateEnv');
 validateEnv();
 
 const app = express();
+
+// Trust proxy for Railway (needed for rate limiting and getting real client IPs)
+app.set('trust proxy', true);
+
 app.use(cors());
 app.use(express.json());
 
