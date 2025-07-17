@@ -6,7 +6,19 @@ console.log('🔍 Railway Environment Check:');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'EXISTS' : 'MISSING');
 console.log('PORT:', process.env.PORT);
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'EXISTS' : 'MISSING');
+console.log('EMAIL_FROM:', process.env.EMAIL_FROM ? 'EXISTS' : 'MISSING');
 console.log('Environment variables count:', Object.keys(process.env).filter(key => !key.startsWith('npm_')).length);
+
+// List all env vars starting with our expected names
+const ourVars = Object.keys(process.env).filter(key => 
+  key.startsWith('DATABASE_') || 
+  key.startsWith('GOOGLE_') || 
+  key.startsWith('JWT_') ||
+  key.startsWith('EMAIL_') ||
+  key.startsWith('BREVO_')
+);
+console.log('Our variables found:', ourVars);
 
 const express = require('express');
 const cors = require('cors');
