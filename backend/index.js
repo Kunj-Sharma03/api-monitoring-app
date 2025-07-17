@@ -1,4 +1,13 @@
-require('dotenv').config();
+// Load environment variables (Railway provides them automatically, fallback to .env for local)
+require('dotenv').config({ silent: true });
+
+// Debug: Check what environment variables Railway is providing
+console.log('🔍 Railway Environment Check:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'EXISTS' : 'MISSING');
+console.log('PORT:', process.env.PORT);
+console.log('Environment variables count:', Object.keys(process.env).filter(key => !key.startsWith('npm_')).length);
+
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
