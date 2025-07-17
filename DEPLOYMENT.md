@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the API Monitoring App to Vercel (frontend) and Render (backend).
+This guide covers deploying the API Monitoring App to Vercel (frontend) and Railway (backend).
 
 ## 🚀 Quick Deployment Steps
 
@@ -15,43 +15,45 @@ This guide covers deploying the API Monitoring App to Vercel (frontend) and Rend
    ```
 
 2. **Configure Environment Variables in Vercel Dashboard**:
-   - `NEXT_PUBLIC_API_URL`: Your backend URL (e.g., `https://your-app.onrender.com`)
+   - `NEXT_PUBLIC_API_URL`: Your Railway backend URL (e.g., `https://your-app.railway.app`)
 
 3. **Automatic Deployment**: Vercel will auto-deploy on GitHub pushes
 
-### Backend Deployment (Render)
+### Backend Deployment (Railway)
 
-1. **Connect Repository to Render**:
-   - Go to [Render Dashboard](https://dashboard.render.com)
-   - Click "New" → "Web Service"
-   - Connect your GitHub repository
-   - Select the repository root
+1. **Connect Repository to Railway**:
+   - Go to [Railway Dashboard](https://railway.app)
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Connect your GitHub repository: `Kunj-Sharma03/api-monitoring-app`
 
 2. **Configure Service**:
-   - **Build Command**: `cd backend && npm install`
-   - **Start Command**: `cd backend && npm start`
-   - **Environment**: Node
-   - **Plan**: Starter (free tier)
+   - Railway auto-detects Node.js settings
+   - **Build Command**: `cd backend && npm install` (auto-detected)
+   - **Start Command**: `cd backend && npm start` (auto-detected)
 
-3. **Environment Variables** (Add in Render Dashboard):
+3. **Environment Variables** (Add in Railway Dashboard → Variables):
+   **Copy values from your `backend/.env` file:**
    ```
    NODE_ENV=production
    PORT=8000
-   JWT_SECRET=your-jwt-secret-here
-   SESSION_SECRET=your-session-secret-here
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
+   DATABASE_URL=your-supabase-connection-string
+   JWT_SECRET=your-jwt-secret
    EMAIL_FROM=your-email@gmail.com
-   ALERT_EMAIL_TO=admin@yourcompany.com
-   CORS_ORIGIN=https://your-frontend.vercel.app
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_SECURE=false
+   BREVO_SMTP_USER=your-brevo-user
+   BREVO_SMTP_PASS=your-brevo-password
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   SESSION_SECRET=your-session-secret
    ```
 
-4. **Database Setup**:
-   - In Render, create a PostgreSQL database
-   - Copy the `DATABASE_URL` to your environment variables
+4. **Database**: Already using Supabase (no additional setup needed!)
+
+## 💰 Cost Breakdown
+
+- **Railway**: $5/month free credit (sufficient for 24/7 operation)
+- **Vercel**: Completely free for frontend
+- **Supabase**: Free tier (you're already using this)
+- **Total Cost**: $0/month (within free limits)
 
 ## 🔧 Manual Setup Alternative
 
