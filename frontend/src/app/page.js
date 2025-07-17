@@ -303,7 +303,7 @@ export default function Home() {
                       <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:gap-6">
                         <div className="p-3 sm:p-4 lg:p-6 bg-[#232329]/50 rounded-lg border border-[#232329]">
                           <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-violet-400 mb-1 sm:mb-2">847K</div>
-                          <div className="text-slate-500 text-xs sm:text-sm lg:text-base">Today's Requests</div>
+                          <div className="text-slate-500 text-xs sm:text-sm lg:text-base">Today&apos;s Requests</div>
                         </div>
                         <div className="p-3 sm:p-4 lg:p-6 bg-[#232329]/50 rounded-lg border border-[#232329]">
                           <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-400 mb-1 sm:mb-2">99.2%</div>
