@@ -127,16 +127,16 @@ export default function Dashboard() {
             />
             
             {/* Main Stats - Total and Active Monitors */}
-            <div className="flex flex-row gap-12 w-full justify-center z-10">
-              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-10 py-8 min-w-[180px] shadow-md">
-                <MonitorIcon className="w-10 h-10 text-[var(--color-primary)] mb-2" />
+            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-12 items-center justify-center z-10">
+              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-8 sm:px-10 py-6 sm:py-8 min-w-[160px] sm:min-w-[180px] shadow-md">
+                <MonitorIcon className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--color-primary)] mb-2" />
                 <span className="text-sm text-[var(--color-text-secondary)] font-sans">Total Monitors</span>
-                <span className="text-3xl font-bold font-sans">{isLoading ? '...' : monitors.length}</span>
+                <span className="text-2xl sm:text-3xl font-bold font-sans">{isLoading ? '...' : monitors.length}</span>
               </div>
-              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-10 py-8 min-w-[180px] shadow-md">
-                <span className="w-10 h-10 rounded-full bg-[var(--color-success)] inline-block mb-2" />
+              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-8 sm:px-10 py-6 sm:py-8 min-w-[160px] sm:min-w-[180px] shadow-md">
+                <span className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--color-success)] inline-block mb-2" />
                 <span className="text-sm text-[var(--color-text-secondary)] font-sans">Active</span>
-                <span className="text-3xl font-bold font-sans">{isLoading ? '...' : monitors.filter(m => m.is_active).length}</span>
+                <span className="text-2xl sm:text-3xl font-bold font-sans">{isLoading ? '...' : monitors.filter(m => m.is_active).length}</span>
               </div>
             </div>
           </div>
