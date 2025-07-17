@@ -297,7 +297,7 @@ export default function Home() {
                   <div className="grid grid-cols-2 gap-6">
                     <div className="p-6 bg-[#232329]/50 rounded-lg border border-[#232329]">
                       <div className="text-4xl font-bold text-violet-400 mb-2">847K</div>
-                      <div className="text-slate-500">Today's Requests</div>
+                      <div className="text-slate-500">Today&apos;s Requests</div>
                     </div>
                     <div className="p-6 bg-[#232329]/50 rounded-lg border border-[#232329]">
                       <div className="text-4xl font-bold text-slate-400 mb-2">99.2%</div>
@@ -359,7 +359,7 @@ export default function Home() {
               </h2>
               <p className="text-xl text-[#9ca3af] mb-12 max-w-2xl mx-auto leading-relaxed">
                 Join thousands of developers who chose AP-EYE to watch over their APIs. 
-                Don't blink - start monitoring now.
+                Don&apos;t blink - start monitoring now.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
