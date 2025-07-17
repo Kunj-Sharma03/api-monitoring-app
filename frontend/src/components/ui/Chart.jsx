@@ -8,22 +8,24 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  LineController,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
-  PointElement,
-  LineElement,
 } from 'chart.js';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  LineController,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
-  Legend,
-  PointElement,
-  LineElement
+  Legend
 );
 
 // Memoized Chart component for performance
