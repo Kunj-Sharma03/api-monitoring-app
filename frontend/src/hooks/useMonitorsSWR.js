@@ -15,7 +15,7 @@ export default function useMonitorsSWR() {
   const shouldFetch = typeof window !== "undefined" && !!token;
 
   const { data = [], isLoading, mutate } = useSWR(
-    shouldFetch ? ['http://localhost:5000/api/monitor/all', token] : null,
+    shouldFetch ? [`${process.env.NEXT_PUBLIC_API_URL}/api/monitor/all`, token] : null,
     fetcher,
     { 
       refreshInterval: 30000, // Refresh every 30 seconds for real-time status

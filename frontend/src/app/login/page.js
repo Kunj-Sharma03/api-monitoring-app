@@ -94,7 +94,7 @@ export default function LoginPage() {
               type="button"
               className="bg-white/10 hover:bg-white/20 p-3 rounded-full border border-white/20 transition-all"
               onClick={() => {
-                window.location.href = 'http://localhost:5000/api/auth/google';
+                window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
               }}
               aria-label="Sign in with Google"
             >

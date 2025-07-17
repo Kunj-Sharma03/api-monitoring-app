@@ -30,7 +30,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/register', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -128,7 +128,7 @@ export default function RegisterPage() {
               type="button"
               className="bg-white/10 hover:bg-white/20 p-3 rounded-full border border-white/20 transition-all"
               onClick={() => {
-                window.location.href = 'http://localhost:5000/api/auth/google';
+                window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
               }}
               aria-label="Sign up with Google"
             >

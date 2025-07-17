@@ -36,16 +36,16 @@ export default function Dashboard() {
         console.log('Fetching analytics data for range:', timeRange);
         
         const [overviewRes, uptimeRes, responseRes, alertsRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/analytics/overview?range=${timeRange}`, {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/overview?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`http://localhost:5000/api/analytics/uptime-history?range=${timeRange}`, {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/uptime-history?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`http://localhost:5000/api/analytics/response-time?range=${timeRange}`, {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/response-time?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`http://localhost:5000/api/analytics/alerts-history?range=${timeRange}`, {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/alerts-history?range=${timeRange}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
