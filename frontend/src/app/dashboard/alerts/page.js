@@ -173,7 +173,7 @@ export default function AlertsPage() {
           onDelete={async (alert) => {
             if (!alert || !alert.id) return;
             try {
-              const res = await fetch(`http://localhost:5000/api/monitor/alert/${alert.id}`, {
+              const res = await fetch(`${API_URL}/monitor/alert/${alert.id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
               });

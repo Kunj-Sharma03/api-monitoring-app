@@ -7,6 +7,51 @@
 
 > *"Because your APIs deserve better than crossing your fingers and hoping for the best."*
 
+## 🖼️ See It In Action
+
+<div align="center">
+
+### 📊 **Dashboard Overview**
+![Dashboard Screenshot](screenshots/dashboard.png)
+*Beautiful, responsive dashboard showing all your monitors at a glance*
+
+### 📈 **Analytics & Insights**
+![Analytics Screenshot](screenshots/analytics.png)
+*Comprehensive analytics with real-time charts and performance metrics*
+
+### 🚨 **Smart Alerts**
+![Alerts Screenshot](screenshots/alerts.png)
+*Intelligent alert system with detailed incident tracking*
+
+<table>
+<tr>
+<td align="center">
+<img src="screenshots/email-notification.png" alt="Email Notification" width="300"/>
+<br><b>📧 Email Alerts</b>
+<br><i>Professional email notifications</i>
+</td>
+<td align="center">
+<img src="screenshots/alert-pdf.png" alt="PDF Report" width="300"/>
+<br><b>📄 PDF Reports</b>
+<br><i>Detailed incident reports</i>
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="screenshots/mobile-dashboard.png" alt="Mobile View" width="300"/>
+<br><b>📱 Mobile Ready</b>
+<br><i>Responsive design for all devices</i>
+</td>
+<td align="center">
+<img src="screenshots/landing-page.png" alt="Landing Page" width="300"/>
+<br><b>🎨 Beautiful UI</b>
+<br><i>Modern design with smooth animations</i>
+</td>
+</tr>
+</table>
+
+</div>
+
 ## 🎯 What Is This Thing?
 
 Listen, we've all been there. You deploy your API, everything works perfectly on your machine (obviously), and then suddenly at 3 AM your users are flooding your inbox because your API decided to take an unscheduled vacation. **AP-EYE** is here to make sure you know about problems before your users do – because nobody likes angry customers, and nobody likes waking up to fire.
@@ -45,20 +90,7 @@ AP-EYE is a sleek, modern API monitoring application that watches your endpoints
 - Rate limiting to prevent abuse
 - PostgreSQL with proper query sanitization
 
-## 📸 Screenshots
-
-*Add these screenshots to make your README shine:*
-
-1. **`/screenshots/dashboard.png`** - Main dashboard with monitor overview
-2. **`/screenshots/analytics.png`** - Analytics page with charts and metrics
-3. **`/screenshots/alerts.png`** - Alerts page showing recent incidents
-4. **`/screenshots/mobile-dashboard.png`** - Mobile-responsive dashboard
-5. **`/screenshots/email-notification.png`** - Sample email notification received
-6. **`/screenshots/alert-pdf.png`** - Sample PDF alert report
-7. **`/screenshots/monitor-creation.png`** - Creating a new monitor
-8. **`/screenshots/landing-page.png`** - Beautiful landing page with animations
-
-## 🛠️ Tech Stack (The Good Stuff)
+## ️ Tech Stack (The Good Stuff)
 
 ### Frontend
 - **Next.js 15.3.4** - React framework that doesn't make you want to cry

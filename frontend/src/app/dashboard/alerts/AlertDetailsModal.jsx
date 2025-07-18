@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app'}/api`;
+
 export default function AlertDetailsModal({ alert, onClose, onDelete = () => {}, token }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
@@ -106,7 +108,7 @@ export default function AlertDetailsModal({ alert, onClose, onDelete = () => {},
             onClick={async () => {
               setDownloading(true);
               try {
-                const res = await fetch(`http://localhost:5000/api/monitor/${alert.monitor_id}/alert/${alert.id}/pdf`, {
+                const res = await fetch(`${API_URL}/monitor/${alert.monitor_id}/alert/${alert.id}/pdf`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!res.ok) throw new Error("Failed to download PDF");
@@ -114,7 +116,7 @@ export default function AlertDetailsModal({ alert, onClose, onDelete = () => {},
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `alert.pdf`;
+                a.download = `alert-${alert.id}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
