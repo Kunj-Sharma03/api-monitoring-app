@@ -38,7 +38,7 @@
 </tr>
 <tr>
 <td align="center">
-<img src="screenshots/mobile-dashboard.png" alt="Mobile View" width="300"/>
+<img src="screenshots/mobile-dashboard.jpg" alt="Mobile View" width="300"/>
 <br><b>📱 Mobile Ready</b>
 <br><i>Responsive design for all devices</i>
 </td>
