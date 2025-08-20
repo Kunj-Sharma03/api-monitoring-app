@@ -17,5 +17,5 @@ COPY . .
 # Expose port
 EXPOSE 5000
 
-# Start with direct node command
-CMD ["node", "test.js"]
+# Start the real application
+CMD ["npm", "start"]
