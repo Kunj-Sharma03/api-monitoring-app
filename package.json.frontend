@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "@sendgrid/mail": "^8.1.5",
-    "chart.js": "^4.5.0",
-    "dotenv": "^17.0.1",
-    "react-chartjs-2": "^5.3.0",
-    "swr": "^2.3.4"
-  }
-}

@@ -25,18 +25,18 @@ Set these in Railway's Variables tab:
 
 ## Railway Service Setup
 
-### Method 1: Let nixpacks.toml handle everything (Recommended)
+### Important: Railway Settings
 1. Create new service in Railway
 2. Connect your GitHub repo  
-3. **Do NOT set Root Directory** - leave it empty
-4. Railway will use our nixpacks.toml which copies backend files to app root
-5. The root package.json files are renamed so Railway won't detect frontend deps
+3. **CRITICAL**: Leave Root Directory EMPTY (don't set it to backend)
+4. **CRITICAL**: In service settings, ensure Builder is set to "Nixpacks"
+5. Railway will use nixpacks.toml which handles backend setup automatically
 
-### Method 2: Use Root Directory (Alternative)
-1. Create new service in Railway
-2. Connect your GitHub repo
-3. Set **Root Directory** to `backend`
-4. This makes Railway treat backend folder as project root
+### If Railway still doesn't use nixpacks.toml:
+1. Go to service Settings → General
+2. Manually set Builder to "Nixpacks" 
+3. Clear any custom Build/Start commands
+4. Redeploy
 
 ## Build Process
 - Nixpacks will use Node.js 18 with native build tools (python, gcc, make)
