@@ -7,7 +7,8 @@
     "npm": ">=8.0.0"
   },
   "scripts": {
-    "start": "node simple.js",
+    "start": "node test.js",
+    "start:simple": "node simple.js",
     "start:debug": "node debug.js",
     "start:prod": "node index.js",
     "dev": "nodemon index.js",
