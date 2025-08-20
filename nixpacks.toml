@@ -1,5 +1,5 @@
 [phases.build]
-cmds = ["cd backend && npm ci --only=production"]
+cmds = ["cd backend && npm ci --omit=dev --cache /tmp/.npm"]
 
 [start]
 cmd = "cd backend && npm start"

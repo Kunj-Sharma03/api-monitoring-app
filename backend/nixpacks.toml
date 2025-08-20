@@ -1,5 +1,5 @@
 [phases.build]
-cmds = ["npm ci --only=production"]
+cmds = ["npm ci --omit=dev --cache /tmp/.npm"]
 
 [start]
 cmd = "npm start"
