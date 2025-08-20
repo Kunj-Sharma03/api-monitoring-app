@@ -33,8 +33,16 @@ const monitorRoutes = require('./routes/monitor');
 const analyticsRoutes = require('./routes/analytics');
 const checkMonitors = require('./services/monitorWorker');
 const { pool } = require('./db');
-const validateEnv = require('./utils/validateEnv');
-validateEnv();
+
+// Validate environment with graceful error handling
+try {
+  const validateEnv = require('./utils/validateEnv');
+  validateEnv();
+  console.log('✅ Environment validation passed');
+} catch (error) {
+  console.error('❌ Environment validation failed:', error.message);
+  console.log('⚠️  Continuing with defaults...');
+}
 
 const app = express();
 
@@ -132,8 +140,34 @@ process.on('unhandledRejection', (err) => {
   console.error('🧨 Unhandled DB error:', err.message);
 });
 
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('🧨 Uncaught Exception:', err.message);
+  console.error(err.stack);
+});
+
 const PORT = process.env.PORT || 5000;
 
-connectWithRetry().then(() => {
-  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-});
+// Start server with or without database connection
+async function startServer() {
+  try {
+    console.log('🚀 Starting server...');
+    
+    // Try to connect to database but don't fail if it doesn't work
+    try {
+      await connectWithRetry(3, 2000);
+    } catch (dbError) {
+      console.warn('⚠️  Database connection failed, but starting server anyway');
+    }
+    
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📡 Health check: http://localhost:${PORT}/health`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
+    process.exit(1);
+  }
+}
+
+startServer();

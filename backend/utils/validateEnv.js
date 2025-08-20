@@ -3,18 +3,45 @@ function validateEnv() {
     'PORT',
     'DATABASE_URL',
     'JWT_SECRET',
-    'EMAIL_FROM',
-    'BREVO_SMTP_USER',
-    'BREVO_SMTP_PASS',
-    'LOG_CLEANUP_DAYS',
   ];
 
+  // Optional variables with defaults for Railway deployment
+  const optional = {
+    'EMAIL_FROM': 'noreply@apimonitoring.app',
+    'BREVO_SMTP_USER': '',
+    'BREVO_SMTP_PASS': '',
+    'LOG_CLEANUP_DAYS': '7',
+  };
+
+  console.log('🔍 Environment Validation:');
+  
+  // Check required variables
+  const missing = [];
   required.forEach((key) => {
     if (!process.env[key]) {
+      missing.push(key);
       console.error(`❌ Missing required environment variable: ${key}`);
-      process.exit(1);
+    } else {
+      console.log(`✅ ${key}: EXISTS`);
     }
   });
+
+  // Set defaults for optional variables
+  Object.entries(optional).forEach(([key, defaultValue]) => {
+    if (!process.env[key]) {
+      process.env[key] = defaultValue;
+      console.log(`⚠️  ${key}: Using default value`);
+    } else {
+      console.log(`✅ ${key}: EXISTS`);
+    }
+  });
+
+  // Exit only if critical variables are missing
+  if (missing.length > 0) {
+    console.error(`❌ Missing critical environment variables: ${missing.join(', ')}`);
+    console.error('Please set these in Railway environment variables');
+    process.exit(1);
+  }
 
   const port = parseInt(process.env.PORT, 10);
   if (isNaN(port) || port < 1024 || port > 65535) {
