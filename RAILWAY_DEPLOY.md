@@ -25,18 +25,21 @@ Set these in Railway's Variables tab:
 
 ## Railway Service Setup
 
-### Important: Railway Settings
-1. Create new service in Railway
-2. Connect your GitHub repo  
-3. **CRITICAL**: Leave Root Directory EMPTY (don't set it to backend)
-4. **CRITICAL**: In service settings, ensure Builder is set to "Nixpacks"
-5. Railway will use nixpacks.toml which handles backend setup automatically
+### CRITICAL: Force Nixpacks Usage
+If Railway keeps generating Dockerfiles instead of using nixpacks.toml:
 
-### If Railway still doesn't use nixpacks.toml:
-1. Go to service Settings → General
-2. Manually set Builder to "Nixpacks" 
-3. Clear any custom Build/Start commands
-4. Redeploy
+1. **In Railway service Settings → General**:
+   - Set **Builder** to "Nixpacks" (not Docker)
+   - **Root Directory**: Leave EMPTY
+   - Clear any custom Build/Start commands
+
+2. **Check Variables tab**:
+   - Make sure NIXPACKS_CONFIG_PATH is NOT set
+   - Railway should auto-detect ./nixpacks.toml
+
+3. **If still using Docker**:
+   - Delete the service and create a new one
+   - Railway sometimes caches the builder type
 
 ## Build Process
 - Nixpacks will use Node.js 18 with native build tools (python, gcc, make)

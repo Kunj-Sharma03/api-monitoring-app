@@ -1,17 +1,8 @@
-[variables]
-NODE_ENV = 'production'
-
-[phases.setup]
-nixpkgs = ['nodejs_18', 'python3', 'gcc', 'gnumake', 'pkg-config']
-
-[phases.install]
-cmds = [
-  'cp backend/package*.json ./',
-  'npm ci --only=production --no-audit --no-fund || npm install --omit=dev --no-audit --no-fund'
-]
-
 [phases.build]
-cmds = ['cp -r backend/* ./']
+cmds = ["cd backend && npm ci --only=production"]
 
-[start]
-cmd = 'node index.js'
+[phases.start]
+cmd = "cd backend && npm start"
+
+[variables]
+NODE_ENV = "production"
