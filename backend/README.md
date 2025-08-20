@@ -200,6 +200,15 @@ The monitor worker runs automatically when you start the server. Check the conso
 2. Add environment variables in Railway dashboard
 3. Deploy automatically on push
 
+Minimum required env vars on Railway:
+- PORT (Railway usually injects this)
+- DATABASE_URL
+- JWT_SECRET (32+ chars recommended)
+
+Optional but useful:
+- EMAIL_FROM, BREVO_SMTP_USER, BREVO_SMTP_PASS (for email alerts)
+- DISABLE_CRONS=true (to start the app without background jobs for debugging)
+
 ### Manual Deployment
 ```bash
 # Build and start
@@ -212,6 +221,8 @@ npm start
 curl http://localhost:5000/health
 # Should return: {"status":"OK","timestamp":"..."}
 ```
+
+If you need to debug startup without scheduled jobs running, set `DISABLE_CRONS=true` and redeploy. This prevents background workers from starting while keeping the API available.
 
 ## 🔧 Troubleshooting
 

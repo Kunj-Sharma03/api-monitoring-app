@@ -7,10 +7,11 @@ If you're getting "Cannot find module 'express-session'" error, follow these ste
 ### 1. Railway Dashboard Settings
 In your Railway project dashboard:
 
-**Settings → Build & Deploy:**
-- **Build Command**: `cd backend && npm ci --only=production`
-- **Start Command**: `cd backend && npm start`
-- **Root Directory**: Leave empty (use repository root)
+We now use the Dockerfile builder for reliable native module support (bcrypt). Ensure:
+
+- Builder: Dockerfile (auto-detected from repo root)
+- Root Directory: Leave empty (use repository root)
+- No custom Build/Start commands needed. The Dockerfile handles it.
 
 ### 2. Environment Variables
 Add these in Railway Dashboard → Variables tab:
@@ -39,13 +40,13 @@ After updating settings:
 ### 4. Common Issues & Solutions
 
 **Problem**: "Cannot find module" errors
-**Solution**: Make sure build command includes `cd backend &&` prefix
+**Solution**: Ensure you're using the Dockerfile builder and that the root-level `Dockerfile` exists. It installs backend deps correctly.
 
 **Problem**: Build fails
 **Solution**: Use `npm ci --only=production` instead of `npm install`
 
 **Problem**: Wrong directory
-**Solution**: Ensure all commands start with `cd backend &&`
+**Solution**: With Dockerfile builder, no `cd` is needed; the Dockerfile copies `backend/` and runs from there.
 
 ### 5. Testing
 Once deployed successfully:

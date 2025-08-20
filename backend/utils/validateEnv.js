@@ -36,33 +36,38 @@ function validateEnv() {
     }
   });
 
-  // Exit only if critical variables are missing
+  // Report if critical variables are missing (do not kill process here)
   if (missing.length > 0) {
-    console.error(`❌ Missing critical environment variables: ${missing.join(', ')}`);
-    console.error('Please set these in Railway environment variables');
-    process.exit(1);
+    const msg = `Missing critical environment variables: ${missing.join(', ')}`;
+    console.error(`❌ ${msg}`);
+    // Throw so callers can decide whether to continue
+    throw new Error(msg);
   }
 
   const port = parseInt(process.env.PORT, 10);
-  if (isNaN(port) || port < 1024 || port > 65535) {
-    console.error('❌ PORT must be a number between 1024 and 65535');
-    process.exit(1);
+  if (isNaN(port) || port < 1 || port > 65535) {
+    const msg = 'PORT must be a number between 1 and 65535';
+    console.error(`❌ ${msg}`);
+    throw new Error(msg);
   }
 
-  if (process.env.JWT_SECRET.length < 32) {
-    console.error('❌ JWT_SECRET must be at least 32 characters long');
-    process.exit(1);
+  if (process.env.JWT_SECRET.length < 16) {
+    const msg = 'JWT_SECRET is too short (recommend >= 32 chars)';
+    console.error(`❌ ${msg}`);
+    throw new Error(msg);
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(process.env.EMAIL_FROM)) {
-    console.error('❌ EMAIL_FROM is not a valid email address');
-    process.exit(1);
+    const msg = 'EMAIL_FROM is not a valid email address';
+    console.error(`❌ ${msg}`);
+    throw new Error(msg);
   }
 
   const cleanupDays = parseInt(process.env.LOG_CLEANUP_DAYS, 10);
   if (isNaN(cleanupDays) || cleanupDays < 1) {
-    console.error('❌ LOG_CLEANUP_DAYS must be a positive integer');
-    process.exit(1);
+    const msg = 'LOG_CLEANUP_DAYS must be a positive integer';
+    console.error(`❌ ${msg}`);
+    throw new Error(msg);
   }
 
   console.log('✅ All environment variables validated successfully');

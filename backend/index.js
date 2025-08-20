@@ -26,6 +26,7 @@ const session = require('express-session');
 const passport = require('passport');
 const cron = require('node-cron');
 const LOG_CLEANUP_DAYS = parseInt(process.env.LOG_CLEANUP_DAYS || '7');
+const DISABLE_CRONS = (process.env.DISABLE_CRONS || '').toLowerCase() === 'true' || process.env.DISABLE_CRONS === '1';
 const apiLimiter = require('./middleware/rateLimiter');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
@@ -89,35 +90,39 @@ app.use('/api/monitor', monitorRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 // ⏱️ Cron monitor check (runs every minute)
-let isChecking = false;
+if (DISABLE_CRONS) {
+  console.log('⏸️ Cron jobs are disabled via DISABLE_CRONS env var');
+} else {
+  let isChecking = false;
 
-cron.schedule('* * * * *', async () => {
-  if (isChecking) return console.warn('⚠️ Skipping check: previous still running');
+  cron.schedule('* * * * *', async () => {
+    if (isChecking) return console.warn('⚠️ Skipping check: previous still running');
 
-  isChecking = true;
-  console.log('⏱️ Running scheduled monitor check...');
-  try {
-    await pool.query('SELECT 1'); // DB ping
-    await checkMonitors().catch(err => console.error('🚨 Monitor job failed:', err.message));
-  } catch (err) {
-    console.error('🔌 Monitor check failed:', err.message);
-  } finally {
-    isChecking = false;
-  }
-});
+    isChecking = true;
+    console.log('⏱️ Running scheduled monitor check...');
+    try {
+      await pool.query('SELECT 1'); // DB ping
+      await checkMonitors().catch(err => console.error('🚨 Monitor job failed:', err.message));
+    } catch (err) {
+      console.error('🔌 Monitor check failed:', err.message);
+    } finally {
+      isChecking = false;
+    }
+  });
 
-// 🧹 Daily cleanup: delete monitor_logs older than LOG_CLEANUP_DAYS
-cron.schedule('0 0 * * *', async () => {
-  console.log(`🧹 Cleaning up logs older than ${LOG_CLEANUP_DAYS} days...`);
-  try {
-    const result = await pool.query(
-      `DELETE FROM monitor_logs WHERE timestamp < NOW() - INTERVAL '${LOG_CLEANUP_DAYS} days' RETURNING id`
-    );
-    console.log(`✅ Deleted ${result.rowCount} old logs`);
-  } catch (err) {
-    console.error('❌ Log cleanup failed:', err.message);
-  }
-});
+  // 🧹 Daily cleanup: delete monitor_logs older than LOG_CLEANUP_DAYS
+  cron.schedule('0 0 * * *', async () => {
+    console.log(`🧹 Cleaning up logs older than ${LOG_CLEANUP_DAYS} days...`);
+    try {
+      const result = await pool.query(
+        `DELETE FROM monitor_logs WHERE timestamp < NOW() - INTERVAL '${LOG_CLEANUP_DAYS} days' RETURNING id`
+      );
+      console.log(`✅ Deleted ${result.rowCount} old logs`);
+    } catch (err) {
+      console.error('❌ Log cleanup failed:', err.message);
+    }
+  });
+}
 
 
 // 🔁 Retry DB connection on startup
