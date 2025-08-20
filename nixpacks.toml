@@ -1,14 +1,17 @@
 [phases.setup]
 nixpkgs = ['nodejs_18', 'python3', 'gcc', 'gnumake', 'pkg-config']
 
-[phases.install]
-cmds = ['cd backend && npm ci --only=production --no-audit --no-fund']
+[phases.install] 
+cmds = [
+  'cp backend/package*.json ./',
+  'npm ci --only=production --no-audit --no-fund'
+]
 
 [phases.build]
-cmds = ['echo "No build step required for backend"']
+cmds = ['echo "No build step required"']
 
 [start]
-cmd = 'cd backend && npm start'
+cmd = 'cp -r backend/* ./ && node index.js'
 
 [variables]
 NODE_ENV = 'production'
