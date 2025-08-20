@@ -151,6 +151,20 @@ process.on('uncaughtException', (err) => {
   console.error(err.stack);
 });
 
+// Log exit signals and beforeExit to diagnose silent shutdowns
+process.on('SIGTERM', () => {
+  console.log('🛑 Received SIGTERM. Shutting down gracefully...');
+});
+process.on('SIGINT', () => {
+  console.log('🛑 Received SIGINT. Shutting down...');
+});
+process.on('beforeExit', (code) => {
+  console.log('⚠️ beforeExit event with code:', code);
+});
+process.on('exit', (code) => {
+  console.log('👋 Process exiting with code:', code);
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Start server with or without database connection
@@ -168,6 +182,8 @@ async function startServer() {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📡 Health check: http://localhost:${PORT}/health`);
+  // Lightweight heartbeat to confirm the process stays alive
+  setInterval(() => console.log('💓 heartbeat', new Date().toISOString()), 60_000);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);

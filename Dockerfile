@@ -13,7 +13,7 @@ RUN apt-get update \
 COPY backend/package*.json ./
 
 # Install production dependencies for backend
-RUN npm ci --only=production --verbose
+RUN npm ci --only=production --verbose || npm install --omit=dev --verbose
 
 # Copy backend application source
 COPY backend/. .
@@ -21,5 +21,5 @@ COPY backend/. .
 # Expose application port (Railway will inject PORT)
 EXPOSE 5000
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application directly with Node to avoid npm lifecycle edge cases
+CMD ["node", "index.js"]

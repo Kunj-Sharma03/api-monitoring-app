@@ -12,3 +12,7 @@ screenshots
 .env*
 **/.next
 frontend/.next
+**/temp/
+**/*.pdf
+.vscode/
+.azure/

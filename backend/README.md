@@ -1,3 +1,7 @@
+## Runtime flags
+
+- DISABLE_CRONS=true to boot without cron workers (useful on Railway while debugging).
+
 # 🔧 AP-EYE Backend
 
 The backend API server for AP-EYE API monitoring application, built with Node.js, Express, and PostgreSQL.

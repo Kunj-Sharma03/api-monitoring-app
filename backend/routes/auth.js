@@ -1,5 +1,20 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+// Prefer native bcrypt; gracefully fall back to bcryptjs to avoid native crashes
+let _bcryptLib;
+try {
+  _bcryptLib = require('bcrypt');
+} catch (e) {
+  console.warn('⚠️ bcrypt native failed to load, falling back to bcryptjs:', e.message);
+  _bcryptLib = require('bcryptjs');
+}
+const bcrypt = {
+  hash: (password, saltRounds) => new Promise((resolve, reject) =>
+    _bcryptLib.hash(password, saltRounds, (err, hash) => (err ? reject(err) : resolve(hash)))
+  ),
+  compare: (password, hash) => new Promise((resolve, reject) =>
+    _bcryptLib.compare(password, hash, (err, same) => (err ? reject(err) : resolve(same)))
+  ),
+};
 const jwt = require('jsonwebtoken');
 const { pool } = require('../db');
 const passport = require('passport');
