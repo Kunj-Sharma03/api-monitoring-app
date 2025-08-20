@@ -1,8 +1,18 @@
-[phases.build]
+[providers]
+node = "18"
+
+[phases.setup]
+nixPkgs = ["nodejs-18_x", "npm"]
+
+[phases.install]
 cmds = ["npm install --omit=dev --no-cache"]
+
+[phases.build]
+cmds = ["echo 'Build phase complete'"]
 
 [start]
 cmd = "npm start"
 
 [variables]
 NODE_ENV = "production"
+NPM_CONFIG_CACHE = "false"
