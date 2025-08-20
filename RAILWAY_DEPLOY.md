@@ -25,15 +25,23 @@ Set these in Railway's Variables tab:
 
 ## Railway Service Setup
 
+### Critical: Set Root Directory
+**You MUST set Root Directory to `backend` in Railway settings:**
+
+1. Go to your Railway service Settings
+2. Set **Root Directory** to `backend` 
+3. This makes Railway treat the backend folder as the project root
+4. Railway will then use `backend/package.json` and `backend/package-lock.json`
+
 ### Option 1: New Service (Recommended)
 1. Create new service in Railway
 2. Connect your GitHub repo
-3. Set **Root Directory** to `backend`
+3. **IMPORTANT**: Set **Root Directory** to `backend`
 4. Railway will auto-detect Node.js and use our nixpacks.toml config
 
 ### Option 2: Update Existing Service
 1. Go to your service Settings
-2. Change **Root Directory** to `backend`
+2. **IMPORTANT**: Change **Root Directory** to `backend`
 3. Ensure **Builder** is set to Nixpacks (should auto-detect)
 4. Redeploy
 
